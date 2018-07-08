@@ -1,0 +1,33 @@
+order:
+parameter name in genomefile
+	parameter name in controller
+		meaning 
+			name in Matsuoka 2011
+
+
+\tau_r
+	tau/tau0
+	tav = NC.tau_ratio*value
+		tau - tau of u
+		tav - T of v
+			tau
+			T
+
+
+beta
+	beta
+		self inhibition multiplier
+			b
+
+
+2neuron_symm_weights
+	wex
+		other neuron inhibition signal multiplier
+			a
+
+tau_ratio = 12 - T/tau
+
+
+
+amp_2n_same_inputs
+    NAMP - tonic input

@@ -34,7 +34,7 @@ classdef Terrain < handle & matlab.mixin.Copyable
             'FloorStep','VertLines','FloorColor','LineWidth'};
         
         % Render parameters
-        FloorStep=0.05;
+        FloorStep=0.01;
         VertLines=10;
         FloorColor=[0.1,0.3,0];
 
@@ -43,6 +43,20 @@ classdef Terrain < handle & matlab.mixin.Copyable
         FloorVL=zeros(1,10);
         
         LineWidth=1;
+        steps=[0,0];
+        
+        %function for stochastic Terrain
+        fun=0;
+        fundot=0;
+        
+        %Parameters for half-slope
+        slopestartpoint=0;
+        slope=0;
+        
+        %Polynomials for stochastic
+        pp = [];
+        dpp = [];
+        
     end
     
     methods
@@ -69,9 +83,21 @@ classdef Terrain < handle & matlab.mixin.Copyable
                         case 3  % parabolla init and end slope
                             Te.start_slope=varargin{2};
                             Te.end_slope=varargin{3};
-                        otherwise % case 0: inclined plane
+                        case 4  % Stair- start and height
+                            Te.steps(1)=varargin{2};
+                            Te.steps(2)=varargin{3};
+                        case 5  % Stochastic Terrain Defined by function
+                            Te.fun=varargin{2};
+                            Te.fundot=varargin{3};
+                        case 6  % half-slope
+                            Te.slopestartpoint=varargin{2};
+                            Te.slope=varargin{3};
+                        case 7 % stochastic terrain defined by pp and dpp (piecewise polynomials)
+                            Te.pp = varargin{2};
+                            Te.dpp = varargin{3};
+                        otherwise
                             Te.start_slope=varargin{2};
-                            Te.end_slope=varargin{2};
+                            Te.end_slope=varargin{3};
                     end
                 case 4
                     Te.Type=varargin{1};
@@ -145,6 +171,22 @@ classdef Terrain < handle & matlab.mixin.Copyable
                         [y1, ~] = Te.Surf3(x(1:ID1-1));
                         [y2, ~] = Te.Surf3(x(ID1:ID2-1));
                         [y3, ~] = Te.Surf3(x(ID2:end));
+                    case 4
+                        [y1, ~] = Te.Surf4(x(1:ID1-1));
+                        [y2, ~] = Te.Surf4(x(ID1:ID2-1));
+                        [y3, ~] = Te.Surf4(x(ID2:end));
+                    case 5
+                        [y1, ~] = Te.Surf5(x(1:ID1-1));
+                        [y2, ~] = Te.Surf5(x(ID1:ID2-1));
+                        [y3, ~] = Te.Surf5(x(ID2:end));
+                    case 6
+                        [y1, ~] = Te.Surf6(x(1:ID1-1));
+                        [y2, ~] = Te.Surf6(x(ID1:ID2-1));
+                        [y3, ~] = Te.Surf6(x(ID2:end));
+                    case 7
+                        [y1, ~] = Te.Surf7(x(1:ID1-1));
+                        [y2, ~] = Te.Surf7(x(ID1:ID2-1));
+                        [y3, ~] = Te.Surf7(x(ID2:end));
                 end
                 y = [y1,y2,y3];
                 Trans=[];
@@ -158,6 +200,14 @@ classdef Terrain < handle & matlab.mixin.Copyable
                         [y,Trans] = Te.Surf2(x);
                     case 3
                         [y,Trans] = Te.Surf3(x);
+                    case 4
+                        [y,Trans] = Te.Surf4(x);
+                    case 5
+                        [y,Trans] = Te.Surf5(x);
+                    case 6
+                        [y,Trans] = Te.Surf6(x);
+                    case 7
+                        [y,Trans] = Te.Surf7(x);
                 end
             end
         end
@@ -172,6 +222,14 @@ classdef Terrain < handle & matlab.mixin.Copyable
                     alpha = Te.SurfSlope2(x);
                 case 3
                     alpha = Te.SurfSlope3(x);
+                case 4
+                    alpha = Te.SurfSlope0(x);
+                case 5
+                    alpha = Te.SurfSlope5(x);
+                case 6
+                    alpha = Te.SurfSlope6(x);
+                case 7
+                    alpha = Te.SurfSlope7(x);
             end
         end
         
@@ -180,6 +238,7 @@ classdef Terrain < handle & matlab.mixin.Copyable
             alpha = Te.SurfSlope(x);
             Trans=[cos(alpha), -sin(alpha);
                    sin(alpha), cos(alpha)];
+            
                
             y=Te.start_y+x*tand(Te.start_slope);
         end
@@ -195,7 +254,7 @@ classdef Terrain < handle & matlab.mixin.Copyable
                    sin(alpha), cos(alpha)];
                
             if x<Te.start_x
-                y=0*x;
+                y=0;            
             else
                 y=Te.sinAmp*(1-cos(Te.sinFreq*(x-Te.start_x)));
             end
@@ -203,7 +262,7 @@ classdef Terrain < handle & matlab.mixin.Copyable
 
         function [alpha]=SurfSlope1(Te,x)
             if x<Te.start_x
-                alpha=0*x;
+                alpha=0;
             else
                 alpha=Te.sinAmp*Te.sinFreq*sin(Te.sinFreq*(x));
             end
@@ -259,6 +318,58 @@ classdef Terrain < handle & matlab.mixin.Copyable
             end
         end
         
+        % %%%%%%%%%%%% Type 4 - Single Stair %%%%%%%%%%%%
+        function [y, Trans] = Surf4(Te,x)
+            alpha = Te.SurfSlope(x);
+            Trans=[cos(alpha), -sin(alpha);
+                   sin(alpha), cos(alpha)];
+            del=Te.steps(2)*(x>=Te.steps(1));
+               
+            y=Te.start_y+del;
+        end
+        
+        % %%%%%%%%%%%% Type 5 - Stochastic Terrain %%%%%%%%%%%%
+        function [y, Trans] = Surf5(Te,x)
+            alpha = Te.SurfSlope(x);
+            Trans=[cos(alpha), -sin(alpha);
+                   sin(alpha), cos(alpha)];
+            y=Te.fun(x);
+        end
+
+        function [alpha]=SurfSlope5(Te,x)
+           % if x<Te.start_x
+                alpha=Te.fundot(x);
+           % end
+        end
+        % %%%%%%%%%%%% Type 6 - Half-Slope Terrain %%%%%%%%%%%%
+        function [y, Trans] = Surf6(Te,x)
+            alpha = Te.SurfSlope(x);
+            Trans=[cos(alpha), -sin(alpha);
+                   sin(alpha), cos(alpha)];
+            y=zeros(size(x));
+            %y(x>Te.slopestartpoint)=0;
+            y(x<=Te.slopestartpoint)=sin(Te.slope)*(x(x<=Te.slopestartpoint)-Te.slopestartpoint);
+            
+        end
+
+        function [alpha]=SurfSlope6(Te,x)
+            alpha=zeros(size(x));
+            alpha(x<=Te.slopestartpoint)=Te.slope;
+        end
+        
+                % %%%%%%%%%%%% Type 7 - Stochastic Terrain - piecewize polynomial %%%%%%%%%%%%
+        function [y, Trans] = Surf7(Te,x)
+            alpha = Te.SurfSlope7(x);
+            Trans=[cos(alpha), -sin(alpha);
+                   sin(alpha), cos(alpha)];
+            y=ppval(Te.pp,x);
+        end
+
+        function [alpha]=SurfSlope7(Te,x)
+           % if x<Te.start_x
+                alpha=ppval(Te.dpp,x);
+           % end
+        end
         % %%%%% Rendering function in Render.m %%%%%
     end
 end

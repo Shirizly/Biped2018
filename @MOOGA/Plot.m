@@ -65,7 +65,7 @@ end
         h = zeros(1,GA.NFit);
         legends = getLegends();
         for f = 1:GA.NFit
-            FitInd = GA.FitFcn{f,1};
+            FitInd = GA.FitFcn{GA.FitIDs(f),1};
             LF = length(FitInd);
             FitMax = reshape(max(GA.Fit(:,FitInd,:)),LF,[]);
             FitMean = reshape(mean(GA.Fit(:,FitInd,:)),LF,[]);

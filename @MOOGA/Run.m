@@ -4,12 +4,15 @@ function [ GA ] = Run( GA )
 %   one), and then goes through the optimization process until the
 %   last generation.
 
+nochange = 0;
+pmax = [0 0 0];
+
 if GA.Sim.Graphics == 1
     GA.Sim.Fig = figure();
 end
 
 if isempty(gcp('nocreate'))
-    parpool(6) % Work in parallel to finish faster
+    parpool(4) % Work in parallel to finish faster
 end
 
 % Decode base genome if provided
@@ -23,6 +26,13 @@ end
 % FitInd = GA.FitFcn(:,1); % Index for fit functions
 % FitFcn = GA.FitFcn(:,2); % Handles for fit functions
 lastTime = [0 0];
+FitInd = GA.FitFcn(:,1); % Index for fit functions
+FitFcn = GA.FitFcn(:,2); % Handles for fit functions
+NFit = size(GA.FitFcn,1);
+
+
+
+
 
 for g = GA.Progress+1:GA.Generations
     startTime = now();
@@ -46,17 +56,19 @@ for g = GA.Progress+1:GA.Generations
     gFits = GA.Fit(:,:,g);
     sim_endCond = GA.sim_endCond(:,:,g);
     Tend_ratio = GA.Tend_ratio(:,:,g);
-    
+  
     ParRunSeq = @GA.RunSeq;
-    
+
     parfor i = 1:GA.Population
-%     for i = 1:GA.Population
-        
+%      for i = 1:GA.Population
+% 
+%          disp(i);
         % don't run Seqs that you already run before:
+        
         if any(gFits(i,:)~=0)
             continue;
         end
-                
+
         [gFits(i,:), gSeqs(i,:), gMRT(i,1),...
             gSRT(i,1),sim_endCond(i,1),Tend_ratio(i,1)] =...
             feval(ParRunSeq, gSeqs(i,:));
@@ -66,10 +78,11 @@ for g = GA.Progress+1:GA.Generations
 	
 	GA.MLseqRunTime(:,:,g) = gMRT;
 	GA.simRunTime(:,:,g) = gSRT;
-    GA.Fit(:,:,g) = gFits;
+    GA.Fit(:,:,g) = gFits(:,:);
     GA.Seqs(:,:,g) = gSeqs;
     GA.sim_endCond(:,:,g) = sim_endCond;
     GA.Tend_ratio(:,:,g) = Tend_ratio;
+    
     
     % % % Check outliers:
     ids = [];
@@ -89,7 +102,7 @@ for g = GA.Progress+1:GA.Generations
 %     MaxFits = GA.FitMinMax.*max(PFits);
 %     disp(['Generation ',num2str(g),' results: ',num2str(MaxFits, '  %.4f')]);
     disp(['Generation ',num2str(g),' results:']);
-    GA.Find();
+    Max = GA.Find();
     
     % Display time elapsed
     t_diff = toc(inner_tic);
@@ -174,6 +187,31 @@ for g = GA.Progress+1:GA.Generations
         % Call external function
         GA = GA.GenerationFcn(GA);
     end
+    
+    
+%     if and(Max{2,1}<1.01*pmax(1),Max{2,2}<1.01*pmax(2))
+%         nochange = nochange + 1;
+%     else
+%         nochange = 0;
+%     end
+%     if nochange == 5
+%         disp('No improvement for 5 gen. in a row, ending algorythm.');
+%         break
+%     end
+%     pmax = [Max{2,1} Max{2,2}];
+    
+%     if Max{2,2}==0
+%         nochange = nochange + 1;
+%     else
+%         nochange = 0;
+%     end
+%     if nochange == 3
+%         disp('No walking achieved in 3 gen. in a row, ending algorithm.');
+%         break
+%     end
+
+
+
 end
 
 end

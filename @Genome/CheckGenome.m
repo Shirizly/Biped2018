@@ -17,6 +17,8 @@ function [ Result, Seq ] = CheckGenome( Ge, Seq )
         	'Sequence outside allowed genome range'};
         return;
     end
+    beta = Seq(2);
+    beta_pos = 2;
 
     SeqPos = 1;
     for k = 1:size(Ge.Keys,2)
@@ -42,7 +44,6 @@ function [ Result, Seq ] = CheckGenome( Ge, Seq )
                         Seq(SeqPos0)*(x>Seq(SeqPos0+1) & x<End);
                     SeqPos0 = SeqPos0 + Ge.KeyLength.Pulses;
                 end
-                
                 % Check that the compound torque signal doesn't exeed
                 % the min/max allowed
                 factor = [];
@@ -61,6 +62,23 @@ function [ Result, Seq ] = CheckGenome( Ge, Seq )
                     end
                     Result{2} = ['Compound torque reduced by factor of ',num2str(factor)];
                 end
+                
+            case 'PGamp'
+                NPulses = Ge.Keys{2,k};
+                dp = Ge.Keys{2,k};
+                for p = 1:NPulses
+                    % Check that the pulse ends before the phase resets
+                    End = Seq(SeqPos+dp+p-1)+Seq(SeqPos+p-1+dp*2);
+                    if End>1
+                        % Shorten the duration
+                        % so that End will be slightly smaller than 1
+                        Seq(SeqPos+p-1+dp*2) = 0.999 - Seq(SeqPos+dp+p-1);
+                        Result{2} = 'Pulse shortened';
+                    end
+                    
+                    
+                end
+                SeqPos = SeqPos + Ge.Keys{2,k}*2; % because decoding amp decode also offset and duration
             case 'ExtPulses'
                 NPulses = Ge.Keys{2,k}(1);
                 SeqPos0 = SeqPos;
@@ -88,7 +106,30 @@ function [ Result, Seq ] = CheckGenome( Ge, Seq )
                     Result{2} = ['Compound event triggered torque reduced',...
                         'by factor of ',num2str(factor)];
                 end
+                
+            case '2neuron_symm_weights' % appears in the genetic sequence after beta, s relies on beta being read already
+                a = Seq(SeqPos);
+                if(a>beta+1)
+                    Seq(beta_pos) = a - 1 + (0.01 + rand(1)*(Ge.Range(2,k) - a + 1));
+                    Result{2} = 'beta parameter corrected to fulfill matsuoka conditions';
+                end                
+                T = tau*12;
+                wn = 1/T*sqrt(((tau+T)*beta-tau*a)/(tau*a));
+                wl = 2*pi;
+                
+                if wn > wl
+                    Seq(tau_pos) = (wn/wl)*tau; %because the frequency depend on tau like wn ~ 1/tau
+                end
+                
+            case 'beta' % keeping value and pos of beta for matsuoka condition check in case '2neuron_symm_weights'
+                beta = Seq(SeqPos);
+                beta_pos = SeqPos;     
+            
+            case '\tau_r'
+                tau = Seq(SeqPos);
+                tau_pos = SeqPos;
         end
+        
         
         % Move the sequence reading position
         SeqPos = Ge.AdvSeq(SeqPos,k);

@@ -205,7 +205,7 @@ for p = 1:NPanels+1
     [imind,cm] = rgb2ind(im,256);
 %     BackgroundDiff = sum(cm-repmat(Background,size(cm,1),1),2);
 %     BackgroundID = find(BackgroundDiff == min(BackgroundDiff),1,'first')-1;
-    if p == 1;
+    if p == 1
         imwrite(imind,cm,filename,'gif','DelayTime',dt,'Loopcount',inf);
 %         imwrite(imind,cm,filename,'gif','DelayTime',dt,...
 %             'Loopcount',inf,'TransparentColor',BackgroundID);

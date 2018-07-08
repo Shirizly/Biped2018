@@ -27,7 +27,7 @@ end
 if ~exist('thisSeq','var')
     thisSeq = GA.Seqs(ID,:,Generation);
 end
-
+  
 % Set-up the simulation
 wSim = deepcopy(GA.Sim);
     
@@ -45,6 +45,20 @@ wSim = wSim.Init();
 % start_slope = -0.2*pi/180;
 % Sim.IC = [start_slope, start_slope, 0, 0, zeros(1, GA.Sim.Con.stDim)];
 wSim.Con = wSim.Con.HandleEvent(1, wSim.IC(wSim.ConCo));
+% if strcmp(wSim.Con.name, '2_level_CPG2')
+%     
+%     
+%     
+% end
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 if strcmp(wSim.Con.name, 'Matsuoka')
     wSim.Con = wSim.Con.Adaptation();
     
@@ -141,7 +155,8 @@ if strcmp(wSim.Con.name, 'Matsuoka')
             return;
         end
     end
-    
+else
+    Matsuoka_runTime = 0;
 end
 
     function xdot = MatsDerivative(t,x)
@@ -149,12 +164,26 @@ end
         xdot = wSim.Con.Derivative(t,[0;0],x);
     end
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
+
+
+
+
+
+
 
 % Run the simulation
 Sim_tic = tic;
+% save('wsim_from_runseq.mat','wSim');
+
 wSim = wSim.Run();
 Sim_runTime = toc(Sim_tic);
+
+
+% save('wsim_from_runseq2.mat','wSim');
 
 % check the end_Type of the simulation (why did it stop)
 sim_endCond = wSim.Out.Type;
@@ -182,8 +211,10 @@ NFit = size(GA.FitFcn,1);
 thisFit = zeros(1,max(cell2mat(FitInd')));
 thisOuts = cell(1,NFit);
 for f = 1:NFit
+    wSim.Mod.xS = 0;
+    wSim.Mod.yS = 0;
     % Preprocessing for ZMPFit
-    if ~isempty(strfind(func2str(FitFcn{f}),'ZMPFit'))
+    if contains(func2str(FitFcn{f}),'ZMPFit')
         % Prepare all the required vectors
         % (torques, state, etc) and put them in wSim.Out
 
@@ -197,10 +228,14 @@ for f = 1:NFit
     end
 
     % Call the fitness function
-    [thisFit(FitInd{f}),thisOuts{f}] = FitFcn{f}(wSim);
-
+    if contains(func2str(FitFcn{f}),'StoFit')
+        [thisFit(f),thisOuts{f}] = MOOGA.StoFit(GA,wSim);
+    else
+        [thisFit(FitInd{f}),thisOuts{f}] = FitFcn{f}(wSim);
+    end
+    
     % Postprocessing for VelFit
-    if ~isempty(strfind(func2str(FitFcn{f}),'VelFit'))
+    if contains(func2str(FitFcn{f}),'VelFit')
         % Switch direction if the model walks backwards
         if thisFit(FitInd{f})<0
             revSeq = GA.Gen.SwitchDir(thisSeq);

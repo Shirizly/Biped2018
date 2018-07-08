@@ -76,7 +76,19 @@ classdef MOOGA
         % some more parameters for the paper:
         sim_endCond = [];
         Tend_ratio = [];
-		
+        
+        % Parameters for StoFit:
+		SF_xend = 3;
+        xend = 25;
+        TerVar = 0.0001;
+        TerVarS = -5;
+        TerVarE = -3;
+        nTerForSto = 10;
+        TerFileName = 'emptyName';
+        nseg = 5;
+        ppv = [];
+        dppv = [];
+        
     end
     
     methods
@@ -115,7 +127,7 @@ classdef MOOGA
         end
         
         function GA = SetFittest(GA,Top,MutTop,NewRnd)
-            GA.Fittest = [floor(Top/100*GA.Population),...
+            GA.Fittest = [floor(Top/100*GA.Population),... 
                           floor(MutTop/100*GA.Population),...
                           floor(NewRnd/100*GA.Population)];
         end
@@ -135,7 +147,7 @@ classdef MOOGA
             PFits = repmat(GA.FitMinMax, ...
                            size(GA.Fit(:,:,Gnrtn), 1), 1) ...
                     .*GA.Fit(:,:,Gnrtn);
-            MaxFits = GA.FitMinMax.*max(PFits);
+            MaxFits = GA.FitMinMax.*max(PFits,[],1);
             
             if exist('find_max','var')
                 Max = cell(2,max(cell2mat(GA.FitFcn(:,1)')));
@@ -147,7 +159,8 @@ classdef MOOGA
                         num2cell(MaxFits(FitInd));
                 end
                 disp(Max)
-                return
+                varargaout = Max;
+                return 
             end
                     
             [R,~] = size(Reqs);
@@ -295,9 +308,14 @@ classdef MOOGA
             out = [];
         end
         
+        
+        
+        
         function [fit,out] = VelFit(Sim)
             X = Sim.Out.X;
             T = Sim.Out.T;
+
+            
             Nt = length(T);
             L = Sim.Mod.L;
             Sim.Mod.xS = Sim.Out.SuppPos(1,1);
@@ -330,6 +348,58 @@ classdef MOOGA
             out = Sim.Out;
         end
         
+        
+        
+        
+        function [fit,out] = ASVelFit(Sim)% Walking velocity fit, unnormalized
+            % defined from end of first step to end of last (succesful) one
+            if (Sim.Out.Type == 0 || Sim.Out.Type == 4 || Sim.Out.Type == 5 || Sim.Out.Type == 6)
+                T = Sim.Out.T;
+                
+                % find the moment of the first stance switch, ignore all time before that T
+                i=0;
+                flag = 0;
+                Nt = length(T);
+                PrevX = 0;
+                while  and(flag < 3,i<Nt-1) % 3 chosen as the number of steps given to stabilize, before starting to measure
+                    i = i+1;
+                    StartX = Sim.Out.SuppPos(i,1); %stance leg x position
+                    if StartX > PrevX
+                        PrevX = StartX;
+                        flag = flag +1;
+                    end
+                end
+                StartT = T(i);
+                flag = 0;
+                Nt = length(T);
+                i = Nt;
+                EndX = Sim.Out.SuppPos(i,1);
+                % Find the Moment the farthest point was reached (end of the
+                % final complete step)
+                
+                while and(flag == 0,i>2)
+                    i = i-1;
+                    TempX = Sim.Out.SuppPos(i,1);
+                    if TempX<EndX
+                        flag = 1;
+                    end
+                end
+                EndT = T(i+1);
+                if EndX>StartX+3*Sim.Mod.L
+                    %             if Sim.Out.Type == 0 || Sim.Out.Type == 5
+                    fit =1+ (EndX-StartX)/(EndT-StartT);
+                else
+                    [fit,~] = MOOGA.VelFit(Sim);
+                end
+            else
+                [fit,~] = MOOGA.VelFit(Sim);
+            end
+            out = Sim.Out;
+        end
+        
+        
+        
+        
         function [fit,out] = NrgEffFit(Sim)
             % Calculate Cost Of Transport
             COT = Sim.GetCOT([1,0], 0);
@@ -347,12 +417,100 @@ classdef MOOGA
             out = [];
         end
         
+%         function [fit,out] = StoFit(GA,sim) %old one
+%             
+%             fit = 0;
+%             sim.IC = sim.ICstore(:,1);
+%             
+%             sim.Con.FBType = 0;
+%             sim.Mod.LegShift = sim.Mod.Clearance;
+%             sim = sim.SetTime(0,0.1,80);
+%             sim.Con = sim.Con.Reset(sim.IC(sim.ConCo));
+%             sim.Con = sim.Con.HandleExtFB(sim.IC(sim.ModCo),...
+%                 sim.IC(sim.ConCo),sim.Env.SurfSlope(sim.Mod.xS));
+%             
+%             sim = sim.Init();
+%             
+%             sim.Env = sim.Env.Set('Type',7,'pp',GA.pp,'dpp',GA.dpp);
+%             
+%             save('wsim_from_Sto2','sim');
+%             maxd = sim.Out.SuppPos(end,1)
+%             nsteps = sim.Out.nSteps
+%             sim = sim.Run();
+%             maxd = sim.Out.SuppPos(end,1)
+%             nsteps = sim.Out.nSteps
+%             fit = max(min(sim.Out.SuppPos(end,1)/GA.SF_xend,1),0)
+%             out = [];
+%         end
+
+
+
+
+        function [fit,out] = StoFit(GA,sim) %new one
+            
+            fit = 0;
+            n = GA.nTerForSto;
+            
+            % The if makes sure the robot enters the sto. testing only if
+            % the plane simulation ended succesfully (without falling down,
+            % etc.)
+            if ~isempty(sim.Period)
+                passV = zeros(1,n);
+                distV = zeros(1,n);
+                for i=1:n
+                    if contains(sim.Con.name,'2 level CPG')
+                    sim.Con.omega = sim.Con.IC_MO(end);
+
+                    sim.Con.omega_c = 1;
+                    sim.Con.startup_c = 1;
+                    sim.Con = sim.Con.Reset(sim.IC(end));
+                    else
+                        sim.Con.startup_t = 1;
+                    end
+                    
+                    sim.IC(sim.ConCo) = sim.Con.IC_MO(1:end-1);
+                    sim.Mod.xS = 0;
+                    sim.Mod.yS = 0;
+                    sim.IC(sim.ModCo) = zeros(1,length(sim.ModCo));
+                    sim.Con.FBType = 0;
+                    sim.Mod.LegShift = sim.Mod.Clearance;
+                    sim = sim.SetTime(0,0.1,GA.xend*3);
+                   
+                    
+                    sim.Env = sim.Env.Set('Type',7,'pp',GA.ppv{i},'dpp',GA.dppv{i});
+                    sim = sim.Init();
+                    
+%                     filename = ['z_sim_from_sto_' num2str(i)];
+%                     save(filename,'sim');
+
+                    sim = sim.Run();
+%                      disp(sim.Out.SuppPos(end,1))
+                    %             nsteps = sim.Out.nSteps;
+                    passV(i) = 0.1*(sim.Out.SuppPos(end,1)/GA.xend>=1);
+                    distV(i) = max(0.1*(sim.Out.SuppPos(end,1)/GA.xend<1)*(min(sim.Out.SuppPos(end,1)/GA.xend,1)),0);
+                    
+                end
+                distV = distV(find(passV==0));
+                if isempty(distV)
+                    distV = 0;
+                end
+                fit = sum(passV)+mean(distV);
+            end
+            out = [];
+        end
+        
+        
+        
         function [fit,out] = EigenFit(Sim)
             if isempty(Sim.Period)
                 fit = 0;
             else
                 % Calculate numerical poincare
+                try
                 [EigVal,~] = Sim.Poincare();
+                catch
+                    EigVal = 1;
+                end
                 fit = 1-max(abs(EigVal));
                 if fit<0
                     fit = 0;
@@ -360,6 +518,8 @@ classdef MOOGA
             end
             out = [];
         end
+        
+        
         
         function [Sim] = SetSimSlope(Sim,vfit,UD)
             parK = min(max(0.005/vfit,0.003),0.01);
@@ -378,6 +538,8 @@ classdef MOOGA
             Sim = Sim.Init();
         end
         
+        
+        
         function [fit,out] = UphillFitRun(Sim)
             SlopeSim = deepcopy(Sim);
             
@@ -395,10 +557,14 @@ classdef MOOGA
             out = SlopeSim.Out;
         end
         
+        
+        
         function [fit,out] = UphillFit(Sim)
             fit = Sim.MaxSlope;
             out = [];
         end
+        
+        
         
         function [fit,out] = DownhillFitRun(Sim)
             SlopeSim = deepcopy(Sim);
@@ -417,11 +583,15 @@ classdef MOOGA
             end
             out = SlopeSim.Out;
         end
-                
+             
+        
+        
         function [fit,out] = DownhillFit(Sim)
             fit = -Sim.MinSlope;
             out = [];
         end
+        
+        
         
         function [fit,out] = ZMPFit(Sim)
             if Sim.Out.SuppPos(end,1)<3*Sim.Mod.L
@@ -527,7 +697,7 @@ classdef MOOGA
             
             if isempty(Sim.Period)
                 % Weed out results that didn't converge
-                fit = [0 0 0];
+                fit = [0];% 0 0];
                 out = [];
                 return;
             end
@@ -537,7 +707,7 @@ classdef MOOGA
             % Run the downslope test
             [down_fit,down_out] = MOOGA.SlopeFit(Sim,-1);
             
-            fit = [up_fit*down_fit up_fit down_fit];
+            fit = [up_fit*down_fit];% up_fit down_fit];
             
             UDSim = deepcopy(Sim);
             UDSim.Out = up_out;
@@ -683,6 +853,52 @@ classdef MOOGA
                 name = fstr{3};
             end
         end
+        
+        function Fronts = get_fronts(GA,Fits)
+            Fits = [Fits,(1:size(Fits,1))'];
+            Fronts = GA.Pareto(Fits);
+        end
+        
+        
+        % make vectors to plot for a desired front
+        function [x,y,z] = prepare_specific_front_data(fits,fronts,desFrontNum)
+            FrData = sortrows(fits(fronts{desFrontNum},:));
+            x = FrData(:,1);
+            y = FrData(:,2);
+            z = [];
+            if size(FrData,2)==3
+                z = FrData(:,3);
+            end
+        end
+        
+        function pareto_plot(GA,Fits,Fi,COLORS)
+            Fronts = GA.get_fronts(GA,Fits);
+            NF = length(Fi);
+            % figure('units','normalized','Position',...
+            %       [0.0953, 0.3870, 0.3161, 0.3139]);
+            
+            for f = 1:NF
+                [x,y,~] = GA.prepare_specific_front_data(Fits,Fronts,Fi(f));
+                
+                %                 if ~isempty(COLORS)
+                %                     if f == 1
+                %                         Color = COLORS{1,1};
+                %                     else
+                %                         Color = COLORS{1,2};
+                %                     end
+                %                 else
+                %                     Color = f/NF*[1, 0, 0] + (1-f/NF)*[0, 0.8, 0];
+                %             end
+                Color = COLORS;
+                
+                h3 = plot(x,y,'-x','Color',Color,'LineWidth',3,'MarkerSize',12);
+                
+                if ~isempty(COLORS) && (f>1) % then suppress all of the legend items of the lower fronts
+                    set(get(get(h3,'Annotation'),'LegendInformation'),'IconDisplayStyle','off');
+                end
+            end
+    end
+        
     end
         
 end

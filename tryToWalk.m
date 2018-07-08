@@ -1,10 +1,13 @@
-function Sim = tryToWalk(seq)
-    Dur = 20;
+function Sim = tryToWalk(seq,ter_type,pp,dpp,graphics)    
+Dur = 180;
     timestep = 0.01;
     
     % Set up the genome
-    load('MatsuokaGenome_4Neuron_tagaLike.mat','Keys','Range','N',...
-        'nAnkle','nHip','maxAnkle', 'maxHip','MutDelta0','MutDelta1');
+%     load('MatsuokaGenome_4Neuron_tagaLike.mat','Keys','Range','N',...
+%         'nAnkle','nHip','maxAnkle', 'maxHip','MutDelta0','MutDelta1');
+
+     load('MatsuokaGenome.mat','Keys','Range','N',...
+         'nAnkle1','nHip','maxAnkle', 'maxHip','MutDelta0','MutDelta1');
 
     Gen = Genome(Keys, Range);
     
@@ -20,7 +23,7 @@ function Sim = tryToWalk(seq)
 
     % Set up the simulations
     Sim = Simulation();
-    Sim.Graphics = 1;
+    Sim.Graphics = graphics;
     Sim.EndCond = 2; % Run until converge (or fall)
 
     % Set up the compass biped model
@@ -29,20 +32,32 @@ function Sim = tryToWalk(seq)
 
     % Set up the terrain
     start_slope = 0;
-    Sim.Env = Sim.Env.Set('Type','inc','start_slope',start_slope);
-
+    switch ter_type
+        case 1
+            Sim.Env = Sim.Env.Set('Type','inc','start_slope',start_slope);
+        case 2
+%             [pp,dpp] = sto_ter_gen(10,0.3,20);
+            Sim.Env = Sim.Env.Set('Type',7,'pp',pp,'dpp',dpp);
+    end
     % Initialize the controller
-    Sim.Con = Matsuoka;
-    Sim.Con.startup_t = 1.0; % Give some time for the neurons to converge
-    % before applying a torque
-    Sim.Con.FBType = 0; % no slope feedback
-    Sim.Con.nPulses = N;
-    Sim.Con.stDim = 4*N;
-    Sim.Con = Sim.Con.SetOutMatrix([nAnkle,nHip]);
-    Sim.Con = Sim.Con.SetAnkles_selection(2); % set the simulation to work with two ankle joints
-    Sim.Con.MinSat = [-maxAnkle,-maxHip];
-    Sim.Con.MaxSat = [ maxAnkle, maxHip];
+%     Sim.Con = Matsuoka;
+%     Sim.Con.startup_t = 1.0; % Give some time for the neurons to converge
+%     % before applying a torque
+%     Sim.Con.FBType = 0; % no slope feedback
+%     Sim.Con.nPulses = N;
+%     Sim.Con.stDim = 4*N;
+%     Sim.Con = Sim.Con.SetOutMatrix([nAnkle,nHip]);
+%     Sim.Con = Sim.Con.SetAnkles_selection(2); % set the simulation to work with two ankle joints
+%     Sim.Con.MinSat = [-maxAnkle,-maxHip];
+%     Sim.Con.MaxSat = [ maxAnkle, maxHip];
 
+Sim.Con = Controller;
+Sim.Con.MinSat = [-maxAnkle,-maxHip];
+Sim.Con.MaxSat = [ maxAnkle, maxHip];
+Sim.Con.nPairs = N;
+Sim.Con.stDim = 4*N+1;
+
+        
     % Simulation parameters
     Sim.IC = [start_slope, start_slope, 0, 0, zeros(1, Sim.Con.stDim)];
 
@@ -62,26 +77,21 @@ function Sim = tryToWalk(seq)
         end
     end
 
-    Sim.Graphics = 1;
-
-    disp(seq);
-
     % Simulation parameters
     Sim = Sim.SetTime(0,timestep,tend);
 
-    % Set internal parameters (state dimensions, events, etc)
-    Sim = Sim.Init();
+
     
     % decode the controller
     Sim = Gen.Decode(Sim, seq);
+    % Set internal parameters (state dimensions, events, etc)
+    Sim = Sim.Init();
     
     % Some more simulation initialization
     Sim.Mod.LegShift = Sim.Mod.Clearance;
     Sim.Con = Sim.Con.HandleEvent(1, Sim.IC(Sim.ConCo));
-    Sim.Con = Sim.Con.Adaptation();
+%     Sim.Con = Sim.Con.Adaptation();
 
-    % Initialize flat terrain
-    Sim.Env = Terrain(0,0);
     
     % Simulate
     Sim = Sim.Run();
@@ -97,6 +107,9 @@ function Sim = tryToWalk(seq)
     T = Sim.Out.T;
     X = Sim.Out.X;
     Pos = Sim.Out.SuppPos;
+    
+    dist = Pos(end,1)
+    stofit = dist/60
     Doubles = find(diff(T)==0);
     T(Doubles) = [];
     X(Doubles,:) = [];

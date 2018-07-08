@@ -53,6 +53,7 @@ classdef Simulation < handle & matlab.mixin.Copyable
         stepsReq = 6; % Steps of minDiff required for convergence
         stepsSS; % Steps taken since minDiff
         
+        
         % Poincare map calculation parameters
         IClimCyc; Period;
         PMeps = 1e-5; PMFull = 0;
@@ -87,6 +88,8 @@ classdef Simulation < handle & matlab.mixin.Copyable
         Ttime; Thold; Tbase; Tscale;
         hTorques;
         Colors = {[1 0 0],[0 0 1],[0 1 0],[0 0 0]};
+        
+
     end
     
     methods

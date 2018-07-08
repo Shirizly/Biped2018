@@ -11,6 +11,7 @@ function [ Seq ] = RandSeq(Ge,N,dist)
     end
     NGenes = size(Ge.Range,2);
     Seq = zeros(N,NGenes);
+
     
     % Generate N random genomes
     for gen = 1:NGenes
@@ -25,7 +26,7 @@ function [ Seq ] = RandSeq(Ge,N,dist)
         end
         
         % Make sure the genome is within range
-        Seq(:,gen) = max(min(Seq(:,gen),Ge.Range(2,gen)),Ge.Range(1,gen));
+%         Seq(:,gen) = max(min(Seq(:,gen),Ge.Range(2,gen)),Ge.Range(1,gen));
     end
     
     % Verify the genomes
@@ -47,8 +48,8 @@ function [ Seq ] = RandSeq(Ge,N,dist)
             % Make sure the genome is within range
             Seq(s,:) = max(min(Seq(s,:),Ge.Range(2,:)),Ge.Range(1,:));
             [Res,Seq(s,:)] = Ge.CheckGenome(Seq(s,:));
-            
-            if count>100
+            count = count+1;
+            if count>10
                 disp('bug!')
             end
         end

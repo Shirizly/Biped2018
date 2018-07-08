@@ -49,7 +49,7 @@ classdef Matsuoka < handle & matlab.mixin.Copyable
         ACT_Neurons = [false,false,true];
         % ankleSelect = [ankle1, ankle2, hip];
         ankleSelect = [true,false,true];
-        % 'ACT_Neurons' - is not chaning in the simulation and is used in
+        % 'ACT_Neurons' - is not changing in the simulation and is used in
         % the MatsuokaML class
         % 'ankleSelect' - is changing to switch the right neuron pair to
         % the stance ankle.
@@ -75,7 +75,7 @@ classdef Matsuoka < handle & matlab.mixin.Copyable
 		FBType = 0;  % 0 - no slope feedback
 		
         % Controller Output
-        startup_t = 0; % torque start time. give the CPG time to converge 
+        startup_t = 1; % torque start time. give the CPG time to converge 
         nPulses = 1; % number of flexor/extensor pairs which actuate the joint
         njoints = 1; % number of actuated joints in the CB
         OutM = [0, 0; 1 -0.1];
@@ -98,7 +98,7 @@ classdef Matsuoka < handle & matlab.mixin.Copyable
         % Phase reset
         ExtP_reset = []; % set to a certain phase to use phase reset
                          % on foot contact
-        
+        IC_MO = [];
         % Set keys
         SetKeys = {'npulses', 'nneurons', 'n_pulses', 'n_neurons', ...
             'tau', 'tau_u', 'tav', 'tau_v', 'tau_r', '\tau_r', ...
@@ -222,7 +222,7 @@ classdef Matsuoka < handle & matlab.mixin.Copyable
             v = X(2*MO.nPulses+1:end,:);
             y = max(u,0);
             
-            udot = 1/MO.tau*(-u - MO.beta*v + MO.Amp - MO.W*y +feedE1);
+            udot = 1/MO.tau*(-u - MO.beta*v + MO.Amp - MO.wex*y +feedE1);
             vdot = 1/MO.tav*(-v+y);
             
             Xdot = [udot;
@@ -231,9 +231,12 @@ classdef Matsuoka < handle & matlab.mixin.Copyable
         
         % %%%%%% % Events % %%%%%% %
         function [value, isterminal, direction] = Events(MO, X)
-            value = ones(MO.nEvents,1);
-            isterminal = ones(MO.nEvents,1);
-            direction = -ones(MO.nEvents,1);
+            u = X(1:2*MO.nPulses,:);
+            
+            
+            value = u(end,1); % pick the zero crossing of the hip E neuron
+            isterminal = zeros(MO.nEvents,1);
+            direction = ones(MO.nEvents,1);
 
         end
         

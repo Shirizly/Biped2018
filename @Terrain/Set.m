@@ -9,7 +9,7 @@ else
     for p = 1:nParams
         key = varargin{2*p-1};
         value = varargin{2*p};
-        if ~isnumeric(value) && ~strcmp(key,'Type')
+        if ~isnumeric(value) && ~strcmp(key,'Type') && ~strcmp(key,'pp') && ~strcmp(key,'dpp')
             error('Set failed: property value must be numeric');
         end
 
@@ -61,6 +61,10 @@ else
                 Te.FloorColor = value;
             case 'LineWidth'
                 Te.LineWidth = value;
+            case 'pp'
+                Te.pp = value;
+            case 'dpp'
+                Te.dpp = value;
         end
     end
     Te=SetEndConditions(Te);

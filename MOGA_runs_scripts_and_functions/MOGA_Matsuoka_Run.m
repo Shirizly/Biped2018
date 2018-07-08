@@ -1,5 +1,5 @@
 function [  ] =...
-    MOGA_Matsuoka_Run(whichCPG,whichGA_Case,trainingDataFile,prevMOGAfileIn)
+    MOGA_Matsuoka_Run(whichCPG,whichGA_Case,trainingDataFile,prevMOGAfileIn,startdate,runcount)
 % MOGA_MATSUOKA_RUN - run MOGA optimization
 % INPUTS:
 % *) 'whichCPG' - which CPG to run?
@@ -13,20 +13,24 @@ function [  ] =...
 % *) 'trainingDataFile' - name of the NN training data file
 % *) 'prevMOGAfileIn' - name of previuos MOGA run for continuing optimization
                 
-% Evulotionary parameters:            
-GA = MOOGA(20,500); % (generations,population size)
-GA = GA.SetFittest(15,15,0.5); % (%keep, %mutate, %random)
-GA.JOAT = 2; % jack of all trades, methods to prevent overspecializations for specific fitnesses (see jonathan's thesis)
+% Evulotionary parameters:
+MoogaGen = 20;
+MoogaPop = 500;
+GA = MOOGA(MoogaGen,MoogaPop); % (generations,population size)
+GA = GA.SetFittest(15,15,2); %(%keep, %mutate, %random), all the rest are created with crossing
+% GA = GA.SetFittest(100,0,0);
+GA.JOAT = 0; % jack of all trades, methods to prevent overspecializations for specific fitnesses (see jonathan's thesis)
 GA.Quant = 0.7; % parameter for GA.JOAT = 2, defines percentiles for JOAT method 2
 
 GA.FileIn = prevMOGAfileIn; % load previous mooga result file, can continue from stop point
 
 % get MOGA output file name:
-FileName_prefix = 'VGAM_';
+FileName_prefix = 'AS_';
 FileName_start = [whichCPG,'_'];
-FileName_date = datestr(now,'mm_dd_hh_MM');
-FileName_extra1 = '_same_tonicInputs_20Gen_500Genes_';
-FileName_extra2 = whichGA_Case;
+FileName_date = [startdate '_' num2str(runcount)];
+FileName_extra1 = [];
+FileName_extra2 = [];
+% FileName_extra2 = whichGA_Case;
 GA.FileOut = [FileName_prefix,FileName_start,FileName_date,...
     FileName_extra1,FileName_extra2,'.mat'];
 
@@ -64,201 +68,28 @@ GA.ReDo = 1;
 
 GA.Gen = Genome(Keys, Range);
 
-MML = MatsuokaML();
-% MML.perLim = [0.68 0.78];
-% MML.perLimOut = MML.perLim + [-0.08 0.08]; % Desired period range
-MML.perLim = [1.3 1.5];
-MML.perLimOut = MML.perLim + [-0.08 0.08]; % Desired period range
-MML.nNeurons = 2*N;
 
-% Use NN?
-switch use_NN
-    case {'NN_regression','NN_reg'}
-        GANN_file = 'MatsGANN_reg.mat';
-
-        maxN = 250000;
-        NNSamples = 500;
-
-        inFilenames = {trainingDataFile};
-        
-        MML.sample_genes = {'\tau_r','beta','4neuron_taga_like'}; 
-        MML.target_genes = {'period'};
-
-        [samples, targets, normParams] = MML.prepare_reg_NNData('6N_CPG',inFilenames, maxN);
-        MML.normParams = normParams;
-
-        architecture = [10];
-        [net, tr] = ...
-                MML.train_reg_NN(samples, targets, architecture, NNSamples);
-        save(GANN_file,'net','tr');
-
-        GA.NN_reg = net;
-        GA.NN_reg_Fcn = @NN_reg_Fcn;
-    case {'NN_classification','NN_classi'}
-        GANN_file = 'MatsGANN_classi.mat';
-
-        maxN = 250000;
-        
-        inFilenames = {trainingDataFile};%
-%         MML.sample_genes = {'\tau_r','beta','6neuron_taga_like'}; 
-        MML.sample_genes = {'\tau_r','beta','6neuron_taga_like_symm'}; 
-        MML.target_genes = {'n_osc and osc classes'};
-        [samples, targets] = ...
-            MML.prepare_classi_NNData('6N_CPG',inFilenames, maxN);
-
-        MML.normParams = [];
-
-        architecture = [10];
-        [net, ~] = MML.train_classi_NN(samples, targets, architecture);
-        save(GANN_file,'net');
-
-        GA.NN_classi = net;
-        GA.NN_classi_Fcn = @NN_classi_Fcn;
-end
-
-function seq = NN_reg_Fcn(Gen, net, seq, X, T)
-
-    % % don't need to run Sim again. run the NN on all CPG's??
-    
-    [~, periods, ~, ~, ~] = MML.processResults(X, T);
-    % don't do anything if CPG IS oscillating
-    if ~any(isnan(periods))
-        return
-    end
-
-    % Use NN to select best value for tau gene
-    desPeriod = MML.perLim(1) + ...
-                 rand()*(MML.perLim(2)-MML.perLim(1));
-
-    seq = MML.get_reg_NNPar(net, seq, desPeriod);
-    
-    ids = seq < Gen.Range(1,:) | seq > Gen.Range(2,:);
-    seq(ids) = min(max(seq(ids),Gen.Range(1,ids)),Gen.Range(2,ids));
-end
 
 %%
-function noGO_flag = genomeChevkFcn(X,T)
-    % If the ankle torque is a posivite constant (larger than zero and with
-    % no period) than don't use this genome.
-    [~, periods, signals, ~, ~] = MML.processResults(X, T);
-    
-    % check that the ankle torque is positive:
-    ind2analize = ceil(0.7*size(signals,2));
-    lastOfAnkleSignal = signals(1,ind2analize:end);
-    
-    %  dont take CPGs if the ankle torque is not oscillating and positive
-    if (mean(lastOfAnkleSignal) > 0.001) && isnan(periods(1,1))
-        noGO_flag = 1;
-    else % if the hip torque is constant than ignore it as well
-        if isnan(periods(2,1))
-            noGO_flag = 1;
-        else
-            noGO_flag = 0;
-        end
-    end
-    
-end
-%% % % % First Class_NN vesion:
-% % Ruffle a sample from a random group.
-% 
-% function seq = NN_classi_Fcn(Gen, net, seq, X, T)
+% function noGO_flag = genomeChevkFcn(X,T)
+%     % If the ankle torque is a posivite constant (larger than zero and with
+%     % no period) than don't use this genome.
+%     [~, periods, signals, ~, ~] = MML.processResults(X, T);
 %     
-%     [~, periods, ~, ~, ~] = MML.processResults(X, T);
-%     % don't do anything if CPG IS oscillating
-%     if ~any(isnan(periods)) 
-%         return
-%     end
-% 
-%     rand_seq = MML.Gen.RandSeq(5000);
-%     seq = MML.get_classi_NNPar(net, rand_seq);
-% 
-%     ids = seq < Gen.Range(1,:) | seq > Gen.Range(2,:);
-%     seq(ids) = min(max(seq(ids),Gen.Range(1,ids)),Gen.Range(2,ids));
-% end
-%% % Improve #1 Class_NN version:
-% % Ruffle it from the cross mutated version of the last generation
-function seq = NN_classi_Fcn(Gen,net,seq,lastGen,lastGenes, X, T)
-    % get MOGA class instead of Gen class. Instead off ruffling random 
-    %   CPGs, it's getting a random CPGs from the Mutated versions of the
-    %   topPop.
-    
-    [~, periods, ~, ~, ~] = MML.processResults(X, T);
-    % don't do anything if CPG IS oscillating
-    if ~any(isnan(periods)) 
-        return
-    end
-    
-    % Give 10% chance for a random good sample to get selected (incresing
-    % exploration):
-    if randi(10) == 10
-        rand_seq = MML.Gen.RandSeq(100000);
-        seq = MML.get_classi_NNPar(net, rand_seq);
-    else
-        try % % try to select a mutated version of the topPop:
-            rand_seq = [lastGenes;...
-                MML.Gen.RandSeq(2000)];
-            seq = MML.get_classi_NNPar(net, rand_seq);
-        catch % if there are no good CPGs ruffle moere random samples
-            rand_seq = MML.Gen.RandSeq(100000);
-            seq = MML.get_classi_NNPar(net, rand_seq);
-        end
-    end
-
-%     ids = seq < Gen.Range(1,:) | seq > Gen.Range(2,:);
-%     seq(ids) = min(max(seq(ids),Gen.Range(1,ids)),Gen.Range(2,ids));
-end
-
-%% % Improve #2 Class_NN version:
-% % % Ruffle it from the cross mutated version of the last generation
-% % % ALSO, anable 10% of getting not making any change at all.
-% function seq = NN_classi_Fcn(Gen,net,seq,lastGen,lastGenes, X, T)
-%     % get MOGA class instead of Gen class. Instead off ruffling random 
-%     %   CPGs, it's getting a random CPGs from the Mutated versions of the
-%     %   topPop.
+%     % check that the ankle torque is positive:
+%     ind2analize = ceil(0.7*size(signals,2));
+%     lastOfAnkleSignal = signals(1,ind2analize:end);
 %     
-%     % get radom integer from '1' to '10' if this number is 10 than dont use
-%     % the NN.
-%     if randi(10) > 9
-%         return;
+%     %  dont take CPGs if the ankle torque is not oscillating and positive
+%     if (mean(lastOfAnkleSignal) > 0.001) && isnan(periods(1,1))
+%         noGO_flag = 1;
+%     else % if the hip torque is constant than ignore it as well
+%         if isnan(periods(2,1))
+%             noGO_flag = 1;
+%         else
+%             noGO_flag = 0;
+%         end
 %     end
-%     
-%     [~, periods, ~, ~, ~] = MML.processResults(X, T);
-%     % don't do anything if CPG IS oscillating
-%     if ~any(isnan(periods)) 
-%         return
-%     end
-%     
-%     try
-%         rand_seq = [lastGenes;...
-%             MML.Gen.RandSeq(2000)];
-%         seq = MML.get_classi_NNPar(net, rand_seq);
-%     catch % if there are no good CPGs
-%         rand_seq = MML.Gen.RandSeq(100000);
-%         seq = MML.get_classi_NNPar(net, rand_seq);
-%     end
-% 
-%     ids = seq < Gen.Range(1,:) | seq > Gen.Range(2,:);
-%     % seq(ids) = min(max(seq(ids),Gen.Range(1,ids)),Gen.Range(2,ids));
-% end
-%% % Rescaling function:
-function seq = rescaleFcn(Gen, seq, X, T, des_period)
-    [~, periods, ~, ~, ~] = MML.processResults(X, T);
-
-    % don't do anything if CPG is not oscillating
-    if any(isnan(periods))
-        return
-    end
-    inputPeriod = mean(periods);
-
-    % Scale Tr, Ta to obtain desired period
-    ratio = des_period/inputPeriod;
-    seq(1) = seq(1)*ratio;
-    if seq(1) < Gen.Range(1,1) || seq(1) > Gen.Range(2,1)
-%             warning('Genetic sequence out of bounds, using bounded tau gene')
-        % Bound tau gene
-        seq(1) = min(max(seq(1), Gen.Range(1,1)), Gen.Range(2,1));
-    end
-end
 
 
 %% Set up the simulations
@@ -275,48 +106,67 @@ start_slope = 0;
 GA.Sim.Env = GA.Sim.Env.Set('Type','inc','start_slope',start_slope);
 
 % Initialize the controller
-GA.Sim.Con = Matsuoka;
-GA.Sim.Con.startup_t = 1.0; % Give some time for the neurons to converge
-% before applying a torque
-GA.Sim.Con.FBType = 0; % no slope feedback
-GA.Sim.Con.nPulses = N;
-GA.Sim.Con.stDim = 4*N;
-GA.Sim.Con = GA.Sim.Con.SetOutMatrix([nAnkle1,nAnkle1,nHip]);
-GA.Sim.Con.MinSat = [-maxAnkle,-maxHip];
-GA.Sim.Con.MaxSat = [ maxAnkle, maxHip];
-
+switch whichCPG
+        case {'ConSpitz','ConSpitz2','ConSpitz3','ConSpitz_eq'}
+        GA.Sim.Con = ConSpitz;
+        GA.Sim.Con.MinSat = [-maxAnkle,-maxHip];
+        GA.Sim.Con.MaxSat = [ maxAnkle, maxHip];
+        GA.Sim.Con.stDim = 1;
+        GA.Sim.Con.FAM = whichCPG;  
+    case {'2_level_CPG','2_level_CPG2','2_level_CPG3'}
+        GA.Sim.Con = Controller;
+        GA.Sim.Con.MinSat = [-maxAnkle,-maxHip];
+        GA.Sim.Con.MaxSat = [ maxAnkle, maxHip];
+        GA.Sim.Con.nPairs = N;
+        GA.Sim.Con.stDim = 4*N+1;
+    otherwise
+        GA.Sim.Con = Matsuoka;
+        GA.Sim.Con.startup_t = 1.0; % Give some time for the neurons to converge
+        % before applying a torque
+        GA.Sim.Con.FBType = 0; % no slope feedback
+        GA.Sim.Con.nPulses = N;
+        GA.Sim.Con.stDim = 4*N;
+        GA.Sim.Con = GA.Sim.Con.SetOutMatrix([nAnkle1,nAnkle1,nHip]);
+        GA.Sim.Con.MinSat = [-maxAnkle,-maxHip];
+        GA.Sim.Con.MaxSat = [ maxAnkle, maxHip];
+end
 % Simulation parameters
 GA.Sim.IC = [start_slope, start_slope, 0, 0, zeros(1, GA.Sim.Con.stDim)];
-GA.Sim = GA.Sim.SetTime(0,0.03,20);
+dur = 20;
+GA.Sim = GA.Sim.SetTime(0,0.03,dur);
 
 % Some more simulation initialization
 GA.Sim.Mod.LegShift = GA.Sim.Mod.Clearance;
 
-GA.FitFcn = {1, @MOOGA.VelFit;
-             2, @MOOGA.NrgEffFit;
-             3:10, @MOOGA.VelRangeFit;
-             11, @MOOGA.EigenFit};
-GA.FitIDs = [1,2,3]; % Velocity and average COT
-GA.FitMinMax = [1, 1, 1, 1, -1, 1, -1, 1, -1, 1, 1];
-
-% GA.FitFcn = {1, @MOOGA.VelFit};
-% GA.FitIDs = [1]; % Velocity and average COT
-% GA.FitMinMax = [1];
-
-% GA.FitFcn = {1, @MOOGA.VelFit;
-%              2, @MOOGA.NrgEffFit;
-%              3, @MOOGA.EigenFit};
+% GA.FitFcn = {1, @MOOGA.VelFit;  % walking velocity
+%              2, @MOOGA.NrgEffFit; % energy spent of a step (1/(1+5*COT))
+%              3:10, @MOOGA.VelRangeFit; range of velocities the controller
+%              manages to walk in - TIME CONSUMING, runs the simulation
+%              many times at slowly rising velocities.
+%              11, @MOOGA.EigenFit}; % Eigenvalues of discrete poincare map
 % GA.FitIDs = [1,2,3]; % Velocity and average COT
-% GA.FitMinMax = [1, 1, 1];
+% GA.FitMinMax = [1, 1, 1, 1, -1, 1, -1, 1, -1, 1, 1];
 
-% GA.FitFcn = {1, @MOOGA.VelFit;
-%              2, @MOOGA.EigenFit;
-%              3:10, @MOOGA.VelRangeFit};
-% GA.FitIDs = [3,4]; % Velocity range and average COT
-% GA.FitMinMax = [1, 1, 1, 1, -1, 1, -1, 1, -1, 1];
-% % Pareto always looks to maximize the fitness value but sometimes we want
-% % to check values that don't go into the pareto selection and we want to
-% % minimize (or get the maximum negative value, e.g. a negative slope)
+GA.FitFcn = {1, @MOOGA.ASVelFit; % new walking velocity function, measured from some (nominal - 5th) stance switch to last stance switch
+             2, @MOOGA.NrgEffFit; % energy spent of a step (1/(1+5*COT))
+             3, @MOOGA.EigenFit; % Eigenvalues of discrete poincare map
+             4, @MOOGA.VelFit; % walking velocity
+             5, @MOOGA.StoFit; % stochastic walking fitness
+             6, @MOOGA.UpDownFit}; % min/max slopes
+GA.FitIDs = [1,5,6]; % The fitness functions that are actualy being optimized, out of those calculated 
+GA.FitMinMax = ones(1,6); % sign of optimizing (1 - maximize, -1 - minimized)
+
+% setup for StoFit:
+GA.TerVar = 1e-5;
+GA.SF_xend = 3;
+GA.nTerForSto = 10;
+if exist(['sto_ter_array_fixed' num2str(runcount) '.mat']) == 2
+    load(['sto_ter_array_fixed' num2str(runcount) '.mat'],'ppv','dppv');
+    GA.ppv = ppv;
+    GA.dppv = dppv;
+else
+[GA.ppv,GA.dppv] = Sto_Ter_Array_Gen(runcount,GA.nTerForSto,GA.TerVar,GA.SF_xend);
+end
 
 GA.NFit = size(GA.FitIDs,2);
 GA.Sim.PMFull = 1; % Run poincare map on all coords

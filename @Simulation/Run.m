@@ -5,7 +5,7 @@ function [ sim ] = Run( sim )
     sim.Out.T = [];
     Torques = [];
     Slopes = [];
-    
+    sim.Out.Type = -1; %To make sure that the function changes the value based on the reason for stopping
     last_t = 1;
     
     if sim.Graphics == 1
@@ -92,19 +92,22 @@ function [ sim ] = Run( sim )
                 end
             end
 
-            % Is it a controller event?
+%             Is it a controller event?
+
             ConEvID = find(IE(ev) == sim.ConEv,1,'first');
-            if ~isempty(ConEvID)
+            if ~isempty(ConEvID)  
                 [sim.Con,Xa(sim.ConCo)] = ...
                     sim.Con.HandleEvent(ConEvID, XTemp(end,sim.ConCo));
-
-                % Handle event interactions
-                switch ConEvID
-                    case 1 % Neuron fired
-%                         sim.Mod.LegShift = sim.Mod.Clearance;
-                    case 2 % Leg extension
-                        sim.Mod.LegShift = 0;
-                end 
+%             Handle event interactions - done in controller or erased
+%                 
+%                 switch ConEvID
+%                     case 1 % Neuron fired
+% %                         sim.Mod.LegShift = sim.Mod.Clearance;
+%                     case 2 % Leg extension
+% %                         sim.Mod.LegShift = 0;
+%                     case 3 % Phase resetting--------------------------------------------------
+% %                         Xa(end) = 0;
+%                 end 
             end
         end
 
@@ -170,16 +173,21 @@ function [ sim ] = Run( sim )
             sim = sim.CheckConvergence();
         end
         
+        % Check for runaway events
+%         if any(abs(sim.IC(sim.ModCo(1:2)))>2*pi/3)
+%             % Leg angles are above 120 degrees
+%             sim.StopSim = 1;
+%             sim.Out.Type = 1;
+%             sim.Out.Text = 'Robot fell down (Leg are at angles beyond feasibility)';
+%             break;
+%         end
+        
         if sim.StopSim
             break;
         end
 
-        % Check for runaway events
-        if any(abs(sim.IC(sim.ModCo(1:2)))>2*pi/3)
-            % Leg angles are above 120 degrees 
-            sim.StopSim = 1;
-            break;
-        end
+        
+
         
         % Continue simulation
         if sim.tstep ~= 0.0111
@@ -189,6 +197,7 @@ function [ sim ] = Run( sim )
         end
         if length(tspan)<2
             % Can happen at the end of tspan
+            TimeCond = 0;
             break;
         end
         [TTemp,XTemp,TE,YE,IE] = ...
@@ -220,21 +229,22 @@ function [ sim ] = Run( sim )
                   
             if StoreIC && sim.CheckTorque == 1
                 new_t = length(sim.Out.T);
+                
                 % Check that torque isn't 0 or constant
-                if all(mean(abs(Torques(last_t:new_t,:)),1) < 1e-2)
-                    % Torque output is 0 for the whole step
-                    sim.Out.Type = 9;
-                    sim.Out.Text = 'Torque signal is zero';
-                    sim.StopSim = 1;
-                    break
-                end
-                if all(std(Torques(last_t:new_t,:),1) < 1e-2)
-                    % Torque output is constant for the whole step
-                    sim.Out.Type = 9;
-                    sim.Out.Text = 'Torque signal is constant';
-                    sim.StopSim = 1;
-                    break
-                end
+%                 if all(mean(abs(Torques(last_t:new_t,:)),1) < 1e-2)
+%                     % Torque output is 0 for the whole step
+%                     sim.Out.Type = 9;
+%                     sim.Out.Text = 'Torque signal is zero';
+%                     sim.StopSim = 1;
+%                     break
+%                 end
+%                 if all(std(Torques(last_t:new_t,:),1) < 1e-2)
+%                     % Torque output is constant for the whole step
+%                     sim.Out.Type = 9;
+%                     sim.Out.Text = 'Torque signal is constant';
+%                     sim.StopSim = 1;
+%                     break
+%                 end
                 
 %                 figure
 %                 plot(sim.Out.T(last_t:new_t), ...
@@ -248,6 +258,11 @@ function [ sim ] = Run( sim )
             end
         end
     end
+    
+    if TimeCond==0
+        sim.Out.Type = 0;
+    end
+    
     
     % Prepare simulation output
     sim.Out.X = X;
