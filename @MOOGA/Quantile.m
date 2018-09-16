@@ -13,7 +13,7 @@ end
 if nargin<2
     close all
     
-    NRand = 1000;
+    NRand = 100;
     Nr = 5;
 
     % Generate random 3D data

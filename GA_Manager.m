@@ -1,4 +1,4 @@
-addpath(genpath('MOGA_runs_scripts_and_functions'),genpath('Aux functions in use'));
+addpath(genpath('MOGA_runs_scripts_and_functions'),genpath('Aux functions in use'),genpath('Stochastic terrains'),genpath('Results analysis'));
 
 clear all
 clc
@@ -12,12 +12,12 @@ whichCPGp{3} = 'ConSpitz_eq';
 whichCPGp{4} = '2_level_CPG';
 whichCPGp{5} = '2_level_CPG_eq'; 
 
-CPGlist = [3,2];
-nRuns = 2;
+CPGlist = [2];
+nRuns = 10;
 
 % Evulotionary parameters:
-MoogaGen = 5;
-MoogaPop = 50;
+MoogaGen = 20;
+MoogaPop = 500;
 
 % Stochastic terrain parameters:
 % setup for StoFit:
