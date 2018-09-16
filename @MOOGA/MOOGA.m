@@ -452,7 +452,7 @@ classdef MOOGA
             n = GA.nTerForSto;
             
             % The if makes sure the robot enters the sto. testing only if
-            % the plane simulation ended succesfully (without falling down,
+            % the flat terrain simulation ended succesfully (without falling down,
             % etc.)
             if ~isempty(sim.Period)
                 passV = zeros(1,n);

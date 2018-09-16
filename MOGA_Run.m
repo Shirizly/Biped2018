@@ -14,21 +14,11 @@ function [  ] =...
 % *) 'prevMOGAfileIn' - name of previuos MOGA run for continuing optimization
                 
 
-GA = GA.SetFittest(15,15,2); % (%keep, %mutate, %random), all the rest are created with crossing
+GA = GA.SetFittest(15,15,5); % (%keep, %mutate, %random), all the rest are created with crossing
 % GA = GA.SetFittest(100,0,0);
-GA.JOAT = 0; % jack of all trades, methods to prevent overspecializations for specific fitnesses (see jonathan's thesis)
+GA.JOAT = 2; % jack of all trades, methods to prevent overspecializations for specific fitnesses (see jonathan's thesis)
 GA.Quant = 0.7; % parameter for GA.JOAT = 2, defines percentiles for JOAT method 2
 
-
-% get MOGA output file name:
-FileName_prefix = 'AS_';
-FileName_start = [whichCPG,'_'];
-FileName_date = [datestr(now,'mm_dd') '_' num2str(runcount)];
-FileName_extra1 = [];
-FileName_extra2 = [];
-% FileName_extra2 = whichGA_Case;
-GA.FileOut = [FileName_prefix,FileName_start,FileName_date,...
-    FileName_extra1,FileName_extra2,'.mat'];
 
 % Load Genome File:
 load('MatsuokaGenome.mat','Keys','Range','N',...
@@ -45,7 +35,6 @@ switch whichGA_Case
    case '_rescale_only'
         use_NN = 0;
         GA.rescaleFcn = @rescaleFcn; 
-        
     case {'_NN_classi_only','_NN_classi_only_Feedback'}'
         use_NN = 'NN_classi';
     
@@ -109,7 +98,7 @@ switch whichCPG
         GA.Sim.Con.MaxSat = [ maxAnkle, maxHip];
         GA.Sim.Con.stDim = 1;
         GA.Sim.Con.FAM = whichCPG;
-    case {'2_level_CPG','2_level_CPG2','2_level_CPG3'}
+    case {'2_level_CPG','2_level_CPG2','2_level_CPG3','2_level_CPG_eq'}
         GA.Sim.Con = Controller;
         GA.Sim.Con.MinSat = [-maxAnkle,-maxHip];
         GA.Sim.Con.MaxSat = [ maxAnkle, maxHip];
@@ -165,6 +154,7 @@ GA.NFit = size(GA.FitIDs,2);
 GA.Sim.PMFull = 1; % Run poincare map on all coords
 
 GA = GA.InitGen();
+%%
 
 % Update MOOGA parameters after each generation
 function GA = GenFcn(GA)

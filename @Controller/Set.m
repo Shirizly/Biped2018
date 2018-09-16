@@ -117,6 +117,8 @@ else
                 % only the hip neurons are connects to each other
                 NC.wex = [  0       ,value ;... 
                       value   ,0       ];
+                NC.NAmp0 = [1;1];
+                NC.NAmp = NC.NAmp0;  
             case 'amp_2n_same_inputs' % same tonic inputs to both MN
                 NC.NAmp0 = [value(1);value(1)];
                 NC.NAmp = NC.NAmp0;

@@ -27,6 +27,7 @@ else
                 MO.tav0 = value;
             case {'tau_ratio','\tau_ratio'}
                 MO.tau_ratio = value;
+                MO.tav = MO.tau*value;
             case {'tau_r','\tau_r'}
                 MO.tau = value;
                 MO.tau0 = value;
@@ -138,9 +139,12 @@ else
                           0       ,0       ,0       ,value(1),0       ,0;
                           0       ,0       ,value(1),0       ,value(4),value(3);
                           0       ,0       ,0       ,0       ,0       ,value(2);
-                          0       ,0       ,0       ,0       ,value(2),0;];
+                          0       ,0       ,0       ,0       ,value(2),0;];          
             case 'amp_6n_symm'
                 MO.Amp0 = [value;value;value;value;value;value];
+                MO.Amp = MO.Amp0;
+            case 'amp_6n_semisymm'
+                MO.Amp0 = [value(1);value(1);value(1);value(1);value(2);value(2)];
                 MO.Amp = MO.Amp0;
             case {'ks_c_6n_symm'} % when we have only the hip joint
                 MO.ks_out = [value;value;value;value;value;value];

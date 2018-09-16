@@ -30,8 +30,8 @@ switch whichCase
         maxW = 5;
         minW = 0;
     case {'6N_tagaLike_2Ank_torques','6N_tagaLike_2Ank_torques_symm',...
-            '6N_tagaLike_2Ank_torques_symm_feedback','6N_tagaLike_2Ank_torques_symm_with_rescale',...
-            '6N_general_2Ank_torques','6N_general_2Ank_torques_feedback','2_level_CPG','2_level_CPG2','2_level_CPG3','ConSpitz','ConSpitz2','ConSpitz3','ConSpitz_eq'}
+            '6N_tagaLike_2Ank_torques_symm_feedback','6N_tagaLike_2Ank_torques_symm_feedback_eq','6N_tagaLike_2Ank_torques_symm_with_rescale',...
+            '6N_general_2Ank_torques','6N_general_2Ank_torques_feedback','2_level_CPG','2_level_CPG_eq','2_level_CPG2','2_level_CPG3','ConSpitz','ConSpitz2','ConSpitz3','ConSpitz_eq'}
         nAnkle1 = 1; % Number of ankle1 torque pulses
         nAnkle2 = 1; % Number of ankle2 torques pulses
         nHip = 1;   % Number of hip torques
@@ -182,6 +182,35 @@ switch whichCase
                       1 ,      1,             1,                         4,        1 ,                 1 ,         1,            0 };
         Range = {  0.02 ,    0.2,             0,                        mw,      -10 ,      -0.1*maxAnkle,        -20; % Min
                    0.25 ,    2.5,      maxAnkle,                        Mw,       10 ,       0.1*maxAnkle,         20}; % Max
+               
+    case '6N_tagaLike_2Ank_torques_symm_feedback_eq' %removed the higher order adaptation, equalized number of parameters (10)
+
+        Mamp = [maxAnkle,...
+            maxHip];
+        mamp = 0*Mamp;
+        
+        mw = 0*ones(1,4);
+        Mw = maxW*ones(1,4);
+         
+        Keys = {'\tau_r','\tau_ratio', 'beta', 'amp_6n_semisymm',  '6neuron_taga_like_symm', 'k_hip_fb', 'IC_matsuoka';
+                      1 ,       1,      1,             2,                         4,         1,            0 };
+        Range = {  0.02 ,     0.1,    0.2,          mamp,                        mw,       -20; % Min
+                   0.25 ,      50,    2.5,          Mamp,                        Mw,        20}; % Max
+               
+    case '6N_tagaLike_2Ank_torques_symm_adaptation_eq' % need to update this
+
+        Mamp = [maxAnkle*ones(1,2*nAnkle1),...
+            maxAnkle*ones(1,2*nAnkle2),...
+            maxHip*ones(1,2*nHip)];
+        mamp = 0*Mamp;
+        
+        mw = 0*ones(1,4);
+        Mw = maxW*ones(1,4);
+         
+        Keys = {'\tau_r', 'beta', 'amp_6n_symm',  '6neuron_taga_like_symm', 'ks_\tau',     'ks_c_6n_symm','k_hip_fb', 'IC_matsuoka';
+                      1 ,      1,             3,                         4,        1 ,                 1 ,         1,            0 };
+        Range = {  0.02 ,    0.2,             0,                        mw,      -10 ,      -0.1*maxAnkle,        -20; % Min
+                   0.25 ,    2.5,          Mamp,                        Mw,       10 ,       0.1*maxAnkle,         20}; % Max
     
     case '6N_general_2Ank_torques'
 
@@ -215,7 +244,33 @@ switch whichCase
         Range = {  0.02 ,    0.2,             0,                        mw,      -10 ,      -0.1*maxAnkle,        -20; % Min
                    0.25 ,    2.5,      maxAnkle,                        Mw,       10 ,       0.1*maxAnkle,         20}; % Max
              
-    case '2_level_CPG'  
+%     case '2_level_CPG'   % old version, includes parameters for
+%     % adaptation, tonic input parameter (meaningless here)
+%         Mamp = [maxAnkle*ones(1,2*nAnkle1),...
+%             maxAnkle*ones(1,2*nAnkle2),...
+%             maxHip*ones(1,2*nHip)];
+%         mamp = 0*Mamp;
+%         
+%         % % Same structure as the 2N CPG
+%         % Final genome with tau_r + beta (constant tau_u/tau_v ratio) 
+%         % Include amp, offset, and duration of rectangular pulses for the PG
+%         Mw = maxW;
+%         mw = 0*Mw;
+%         
+%         nP = 4;
+%         
+%         MA = 20*ones(1,nP);
+%         mA = -MA;
+%         MD = ones(1,nP);
+%         mD = 0*MD;
+%         
+%         N = 1;
+%         Keys = {'\tau_r', 'beta','amp_2n_same_inputs',    '2neuron_symm_weights', 'ks_\tau',       'k_hip_fb',     'ks_c_2n_symm',  'PGamp',  'PGoffset', 'PGduration', 'IC_2_lvl';
+%                       1 ,      1,                   1,                1,                 1 ,         1,             1,               nP,       nP,          nP,            0 };
+%         Range = {  0.02 ,    0.2,                  mw,                1.084,           -10,        -20,            -20,              mA,       mD,          mD; % Min
+%                    0.25 ,    20,                   Mw,                10,               10 ,        20,             20,              MA,       MD,          MD}; % Max      
+%                
+    case '2_level_CPG'
         Mamp = [maxAnkle*ones(1,2*nAnkle1),...
             maxAnkle*ones(1,2*nAnkle2),...
             maxHip*ones(1,2*nHip)];
@@ -229,16 +284,42 @@ switch whichCase
         
         nP = 4;
         
-        MA = 20*ones(1,nP);
-        mA = -MA;
+        Mamp = 20*ones(1,nP);
+        mamp = -Mamp;
         MD = ones(1,nP);
         mD = 0*MD;
         
         N = 1;
-        Keys = {'\tau_r', 'beta','amp_2n_same_inputs',    '2neuron_symm_weights', 'ks_\tau',       'k_hip_fb',     'ks_c_2n_symm',  'PGamp',  'PGoffset', 'PGduration', 'IC_2_lvl';
-                      1 ,      1,                   1,                1,                 1 ,         1,             1,               nP,       nP,          nP,            0 };
-        Range = {  0.02 ,    0.2,                  mw,                1.084,           -10,        -20,            -20,              mA,       mD,          mD; % Min
-                   0.25 ,    20,                   Mw,                10,               10 ,        20,             20,              MA,       MD,          MD}; % Max      
+        Keys = {'\tau_r', 'beta',  '2neuron_symm_weights',       'k_hip_fb',    'PGamp',  'PGoffset', 'PGduration', 'IC_2_lvl';
+                      1 ,      1,             1,                  1,              nP,       nP,          nP,            0 };
+        Range = {  0.02 ,    0.2,         1.084,            -20,              mamp,       mD,          mD; % Min
+                   0.25 ,    20,             10,                20,              Mamp,       MD,          MD}; % Max      
+               
+               
+    case '2_level_CPG_eq'
+        Mamp = [maxAnkle*ones(1,2*nAnkle1),...
+            maxAnkle*ones(1,2*nAnkle2),...
+            maxHip*ones(1,2*nHip)];
+        mamp = 0*Mamp;
+        
+        % % Same structure as the 2N CPG
+        % Final genome with tau_r + beta (constant tau_u/tau_v ratio) 
+        % Include amp, offset, and duration of rectangular pulses for the PG
+        Mw = maxW;
+        mw = 0*Mw;
+        
+        nP = 2;
+        
+        Mamp = 20*ones(1,nP);
+        mamp = -Mamp;
+        MD = ones(1,nP);
+        mD = 0*MD;
+        
+        N = 1;
+        Keys = {'\tau_r', 'beta',  '2neuron_symm_weights',    'k_hip_fb',   'PGamp2',  'PGoffset', 'PGduration', 'IC_2_lvl';
+                      1 ,      1,              1,                  1,          nP,       nP,          nP,            0 };
+        Range = {  0.02 ,    0.2,          1.084,                -20,          mamp,       mD,          mD; % Min
+                   0.25 ,    20,              10,                 20,          Mamp,       MD,          MD}; % Max      
                
                
     case '2_level_CPG2'
@@ -255,16 +336,16 @@ switch whichCase
         
         nP = 4;
         
-        MA = 20*ones(1,nP);
-        mA = -MA;
+        Mamp = 20*ones(1,nP);
+        mamp = -Mamp;
         MD = ones(1,nP);
         mD = 0*MD;
         
         N = 1;
         Keys = {'\tau_r', 'beta','amp_2n_same_inputs',    '2neuron_symm_weights', 'ks_\tau',       'k_hip_fb',     'ks_c_2n_symm',  'PGamp',  'PGoffset', 'PGduration', 'IC_2_lvl';
                       1 ,      1,                   1,                1,                 1 ,         1,             1,               nP,       nP,          nP,            0 };
-        Range = {  0.02 ,    0.2,                  mw,                1.084,           -10,        -20,            -20,              mA,       mD,          mD; % Min
-                   0.25 ,    20,                   Mw,                10,               10 ,        20,             20,              MA,       MD,          MD}; % Max      
+        Range = {  0.02 ,    0.2,                  mw,                1.084,           -10,        -20,            -20,              mamp,       mD,          mD; % Min
+                   0.25 ,    20,                   Mw,                10,               10 ,        20,             20,              Mamp,       MD,          MD}; % Max      
                
     case '2_level_CPG3'
         
@@ -282,72 +363,57 @@ switch whichCase
         
         nP = 4;
         
-        MA = 20*ones(1,nP);
-        mA = -MA;
+        Mamp = 20*ones(1,nP);
+        mamp = -Mamp;
         MD = ones(1,nP);
         mD = 0*MD;
         
         N = 1;
         Keys = {'\tau_r', 'beta','amp_2n_same_inputs',    '2neuron_symm_weights', 'ks_\tau',       'k_hip_fb',     'ks_c_2n_symm','k_om' ,  'PGamp',  'PGoffset', 'PGduration', 'IC_2_lvl';
                       1 ,      1,                   1,                1,                 1 ,         1,             1,              1         nP,       nP,          nP,            0 };
-        Range = {  0.02 ,    0.2,                  mw,                1.084,           -10,        -20            -20               0         mA,       mD,          mD; % Min
-                   0.25 ,    20,                   Mw,                10,               10 ,        20             20               1         MA,       MD,          MD}; % Max      
+        Range = {  0.02 ,    0.2,                  mw,                1.084,           -10,        -20            -20               0         mamp,       mD,          mD; % Min
+                   0.25 ,    20,                   Mw,                10,               10 ,        20             20               1         Mamp,       MD,          MD}; % Max      
                
     case 'ConSpitz'
-        Mamp = [maxAnkle*ones(1,2*nAnkle1),...
-            maxAnkle*ones(1,2*nAnkle2),...
-            maxHip*ones(1,2*nHip)];
-        mamp = 0*Mamp;
-        
-        % % Same structure as the 2N CPG
-        % Final genome with tau_r + beta (constant tau_u/tau_v ratio)
+
         % Include amp, offset, and duration of rectangular pulses for the PG
         Mw = maxW;
         mw = 0*Mw;
         
         nP = 4;
         
-        MA = 20*ones(1,nP);
-        mA = -MA;
+        Mamp = maxHip*ones(1,nP);
+        mamp = -Mamp;
         MD = ones(1,nP);
         mD = 0*MD;
         
         N = 1;
         Keys = { 'omega' 'PGamp',  'PGoffset', 'PGduration', 'IC_1_lvl';
                       1      nP,       nP,          nP,            0 };
-        Range = {   0.5      mA,       mD,          mD; % Min
-                      2      MA,       MD,          MD}; % Max
+        Range = {   0.5      mamp,       mD,          mD; % Min
+                      2      Mamp,       MD,          MD}; % Max
         
     case 'ConSpitz_eq'
-        Mamp = [maxAnkle*ones(1,2*nAnkle1),...
-            maxAnkle*ones(1,2*nAnkle2),...
-            maxHip*ones(1,2*nHip)];
-        mamp = 0*Mamp;
-        
-        % % Same structure as the 2N CPG
-        % Final genome with tau_r + beta (constant tau_u/tau_v ratio)
+ 
         % Include amp, offset, and duration of rectangular pulses for the PG
         Mw = maxW;
         mw = 0*Mw;
         
         nP = 3;
         
-        MA = 20*ones(1,nP);
-        mA = -MA;
+        Mamp = maxHip*ones(1,nP);
+        mamp = -Mamp;
         MD = ones(1,nP);
         mD = 0*MD;
         
         N = 1;
         Keys = { 'omega' 'PGamp3',  'PGoffset', 'PGduration', 'IC_1_lvl';
                       1      nP,       nP,          nP,            0 };
-        Range = {   0.5      mA,       mD,          mD; % Min
-                      2      MA,       MD,          MD}; % Max
+        Range = {   0.5      mamp,       mD,          mD; % Min
+                      2      Mamp,       MD,          MD}; % Max
                   
     case 'ConSpitz2'
-        Mamp = [maxAnkle*ones(1,2*nAnkle1),...
-            maxAnkle*ones(1,2*nAnkle2),...
-            maxHip*ones(1,2*nHip)];
-        mamp = 0*Mamp;
+
         
         % % Same structure as the 2N CPG
         % Final genome with tau_r + beta (constant tau_u/tau_v ratio)
@@ -357,21 +423,18 @@ switch whichCase
         
         nP = 4;
         
-        MA = 20*ones(1,nP);
-        mA = -MA;
+        Mamp = 20*ones(1,nP);
+        mamp = -Mamp;
         MD = ones(1,nP);
         mD = 0*MD;
         
         N = 1;
         Keys = { 'PGamp',  'PGoffset', 'PGduration', 'IC_1_lvl';
                       nP,       nP,          nP,            0 };
-        Range = {     mA,       mD,          mD; % Min
-                      MA,       MD,          MD}; % Max
+        Range = {     mamp,       mD,          mD; % Min
+                      Mamp,       MD,          MD}; % Max
     case 'ConSpitz3'
-        Mamp = [maxAnkle*ones(1,2*nAnkle1),...
-            maxAnkle*ones(1,2*nAnkle2),...
-            maxHip*ones(1,2*nHip)];
-        mamp = 0*Mamp;
+
         
         % % Same structure as the 2N CPG
         % Final genome with tau_r + beta (constant tau_u/tau_v ratio)
@@ -381,16 +444,16 @@ switch whichCase
         
         nP = 4;
         
-        MA = 20*ones(1,nP);
-        mA = -MA;
+        Mamp = 20*ones(1,nP);
+        mamp = -Mamp;
         MD = ones(1,nP);
         mD = 0*MD;
         
         N = 1;
         Keys = { 'k_om' 'PGamp',  'PGoffset', 'PGduration', 'IC_1_lvl';
                       1      nP,       nP,          nP,            0 };
-        Range = {     0      mA,       mD,          mD; % Min
-                      1      MA,       MD,          MD}; % Max       
+        Range = {     0      mamp,       mD,          mD; % Min
+                      1      Mamp,       MD,          MD}; % Max       
     otherwise
         error('invalid input');
 end

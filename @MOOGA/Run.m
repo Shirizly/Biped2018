@@ -186,6 +186,12 @@ for g = GA.Progress+1:GA.Generations
     if isa(GA.GenerationFcn,'function_handle')
         % Call external function
         GA = GA.GenerationFcn(GA);
+    else
+        % define Mutation strength:
+        MutDelta0 = 0.04;   
+        MutDelta1 = 0.02;
+        j = GA.Progress/GA.Generations;
+        GA.Gen.MutDelta = (1-j)*MutDelta0 + MutDelta1*j;
     end
     
     

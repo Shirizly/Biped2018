@@ -98,6 +98,9 @@ classdef Matsuoka < handle & matlab.mixin.Copyable
         % Phase reset
         ExtP_reset = []; % set to a certain phase to use phase reset
                          % on foot contact
+                         
+        lastPhi = []; % a plaster for running FF UpDownHill
+        
         IC_MO = [];
         % Set keys
         SetKeys = {'npulses', 'nneurons', 'n_pulses', 'n_neurons', ...
@@ -109,7 +112,7 @@ classdef Matsuoka < handle & matlab.mixin.Copyable
             '2neuron_symm_weights','2neuron_general_weights',...
             'amp_2n_dif_inputs','amp_2n_same_inputs','ks_c_2n_symm','ks_c_2n_general',...
             'amp_6n_symm','6neuron_taga_like',...
-            '6neuron_taga_like_symm','k_hip_fb','des_period'};
+            '6neuron_taga_like_symm','k_hip_fb','des_period','amp_6n_semisymm'};
     end
     
     methods
