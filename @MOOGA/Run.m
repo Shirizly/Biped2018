@@ -143,10 +143,29 @@ for g = GA.Progress+1:GA.Generations
             GA.Tend_ratio(TopIDs,:,g);
         
         % Add a mutated copy of top IDs
+        if GA.Fittest(2)<=GA.Fittest(1)
         GA.Seqs(GA.Fittest(1)+1:GA.Fittest(1)+GA.Fittest(2),:,g+1) = ...
             GA.Gen.Mutate(GA.Seqs(1:GA.Fittest(2),:,g+1));
         GA.Parents(GA.Fittest(1)+1:GA.Fittest(1)+GA.Fittest(2),:,g+1) = ...
             GA.Parents(GA.Fittest(1)+1:GA.Fittest(1)+GA.Fittest(2),:,g);
+        else
+            remainder = GA.Fittest(2);
+            cstart = GA.Fittest(1)+1;
+            while remainder>=GA.Fittest(1)
+                GA.Seqs(cstart:GA.Fittest(1)+cstart-1,:,g+1) = ...
+                    GA.Gen.Mutate(GA.Seqs(1:GA.Fittest(1),:,g+1));
+                GA.Parents(cstart:GA.Fittest(1)+cstart-1,:,g+1) = ...
+                    GA.Parents(cstart:GA.Fittest(1)+cstart-1,:,g);
+                remainder = remainder - GA.Fittest(1);
+                cstart = cstart+GA.Fittest(1);
+            end
+            if remainder>0
+                GA.Seqs(cstart:remainder+cstart-1,:,g+1) = ...
+                    GA.Gen.Mutate(GA.Seqs(1:remainder,:,g+1));
+                GA.Parents(cstart:remainder+cstart-1,:,g+1) = ...
+                    GA.Parents(cstart:GA.Fittest(1)+cstart-1,:,g);
+            end
+        end
 
         % Add children (by pairs)
         Child = GA.Fittest(1)+GA.Fittest(2)+1;
@@ -188,7 +207,7 @@ for g = GA.Progress+1:GA.Generations
         GA = GA.GenerationFcn(GA);
     else
         % define Mutation strength:
-        MutDelta0 = 0.04;   
+        MutDelta0 = 0.04;
         MutDelta1 = 0.02;
         j = GA.Progress/GA.Generations;
         GA.Gen.MutDelta = (1-j)*MutDelta0 + MutDelta1*j;

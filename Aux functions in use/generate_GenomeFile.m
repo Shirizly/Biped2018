@@ -17,7 +17,7 @@ function generate_GenomeFile(whichCase)
 genome_file = 'MatsuokaGenome.mat';
 
 % define Mutation strength:
-MutDelta0 = 0.04;   MutDelta1 = 0.02;
+MutDelta0 = 0.2;   MutDelta1 = 0.05;
 
 switch whichCase
     case {'2N_symm','2N_general'}
