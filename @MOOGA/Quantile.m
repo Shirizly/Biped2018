@@ -6,6 +6,14 @@ Method = 3;
 % 1 - Leave top quantile by eliminating low values from each category
 % 2 - Leave top quantile by eliminating inverse Pareto fronts
 
+% Important note for JOAT = 1: There is a difference between the index
+% of the Data rows, and the last column in Data (which serves as an
+% index for the data that is immune to changes in Data's structure/order). 
+% I call the former current index, and the latter original index. In the code 
+% there are a few small changes that exist only for JOAT = 1, and do nothing 
+% in any other case (to move from one indexing system to the other).
+% A. Shirizly, 20.09.18
+
 if nargin<3
     DesQ = 0.5;
 end
@@ -79,7 +87,7 @@ switch Method
         qData = Data;
         qData(IDs,:) = [];
     case 3
-        DesOut = DesQ*size(Data,1);
+        DesOut = floor(DesQ*size(Data,1));
             
         % Check number of values above zero
         zData = Data>0;
@@ -121,9 +129,9 @@ switch Method
             
         % Delete IDs with too many zero values, but save the "best" ones
         qData = Data;
-        if ~isempty(IDsOut)
+        if ~isempty(IDsOut) % 
             Front = GA.Pareto(Data(IDsOut,:),0,1); % Get one front
-            IDsOut = setdiff(IDsOut,Front{1});
+            IDsOut = setdiff(Data(IDsOut,end),Front{1}); % here IDsOut turns from current IDs to original IDs (for JOAT 1)
         end
         
         if groupsd<Nc+1
@@ -133,9 +141,13 @@ switch Method
             Nkeep = (size(Data,1)-length(IDsOut))-DesOut;
             
             f = 1;
-            IDsOut2 = IDabove{groupsd+1};
+            IDsOut2 = Data(IDabove{groupsd+1},end);
             while 1
+                try
                 FL = length(Fronts{f});
+                catch me
+                    save('error.mat',me);
+                end
                 if length(IDsOut2)-FL<Nkeep
                     break
                 end
@@ -147,8 +159,11 @@ switch Method
             LastIDs = randsample(Fronts{f},length(IDsOut2)-Nkeep);
             IDsOut = [IDsOut; setdiff(IDsOut2, LastIDs)];
         end
-        
-        qData(IDsOut,:) = [];
+        IDsOutO = zeros(length(IDsOut),1);
+        for i = 1:length(IDsOut)
+            IDsOutO(i) = find(Data(:,end)==IDsOut(i));
+        end
+        qData(IDsOutO,:) = [];
 end
     
     function [qData] = GetQuant(Data,quant)

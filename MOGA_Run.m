@@ -14,7 +14,7 @@ function [  ] =...
 % *) 'prevMOGAfileIn' - name of previuos MOGA run for continuing optimization
                 
 
-GA = GA.SetFittest(15,15,5); % (%keep, %mutate, %random), all the rest are created with crossing
+% GA = GA.SetFittest(15,15,5); % (%keep, %mutate, %random), all the rest are created with crossing
 % GA = GA.SetFittest(100,0,0);
 GA.JOAT = 2; % jack of all trades, methods to prevent overspecializations for specific fitnesses (see jonathan's thesis)
 GA.Quant = 0.7; % parameter for GA.JOAT = 2, defines percentiles for JOAT method 2

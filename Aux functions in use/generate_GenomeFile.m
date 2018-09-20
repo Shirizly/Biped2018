@@ -46,6 +46,9 @@ end
 
 N = nAnkle1+nAnkle2+nHip;
 
+disp('The defined Genome is:')
+disp(['case: ',whichCase]);
+
 switch whichCase
     case '2N_symm'
         Mw = maxW*[1,1];
@@ -55,6 +58,8 @@ switch whichCase
                       1 ,      1,                   2,                         1,        1 ,          1,            0 };
         Range = {  0.02 ,    0.2,                  mw,                         0,      -10 ,         -1; % Min
                    0.25 ,    2.5,                  Mw,                        10,       10 ,          1}; % Max
+
+               disp('Tau_retio = 12');
 
         % Note: because of some old mistakes. the tonic input gene ('c') 
         %   is encoded with two values. only one of them is used.          
@@ -69,6 +74,8 @@ switch whichCase
                       1 ,      1,                   2,                            2,        1 ,                 2,            0 };
         Range = {  0.02 ,    0.2,                mamp,                           mw,      -10 ,           [-1,-1]; % Min
                    0.25 ,    2.5,                Mamp,                           Mw,       10 ,             [1,1]}; % Max
+               disp('Tau_retio = 12');
+
     case '6N_tagaLike_2Ank_torques'
         
         Mamp = [maxAnkle*ones(1,2*nAnkle1),...
@@ -111,7 +118,8 @@ switch whichCase
                       1 ,      1,             1,                     6,        1 ,                 1 ,            0 };
         Range = {  0.02 ,    0.2,             0,                    mw,      -10 ,                 -0.1*maxAnkle; % Min
                    0.25 ,    2.5,      maxAnkle,                    Mw,       10 ,                  0.1*maxAnkle}; % Max
-		
+		disp('Tau_retio = 12');
+
 	case '6N_tagaLike_2Ank_torques_symm' % Rea's main controller for his Thesis results
 
         Mamp = [maxAnkle*ones(1,2*nAnkle1),...
@@ -152,7 +160,8 @@ switch whichCase
                       1 ,      1,             1,                         4,        1 ,                 1 ,            0 };
         Range = {  0.02 ,    0.2,             0,                        mw,      -10 ,                 -0.1*maxAnkle; % Min
                    0.25 ,    2.5,      maxAnkle,                        Mw,       10 ,                  0.1*maxAnkle}; % Max
-
+               disp('Tau_retio = 12');
+               
     case '6N_tagaLike_2Ank_torques_symm_with_rescale'
         Mamp = [maxAnkle*ones(1,2*nAnkle1),...
             maxAnkle*ones(1,2*nAnkle2),...
@@ -167,6 +176,7 @@ switch whichCase
                       1 ,      1,             1,                         4,        1 ,                 1 ,            1,            0 };
         Range = {  0.02 ,    0.2,             0,                        mw,      -10 ,      -0.1*maxAnkle,            1; % Min
                    0.25 ,    2.5,      maxAnkle,                        Mw,       10 ,       0.1*maxAnkle,            2}; % Max
+               disp('Tau_retio = 12');
 
 	case '6N_tagaLike_2Ank_torques_symm_feedback'
 
@@ -182,7 +192,8 @@ switch whichCase
                       1 ,      1,             1,                         4,        1 ,                 1 ,         1,            0 };
         Range = {  0.02 ,    0.2,             0,                        mw,      -10 ,      -0.1*maxAnkle,        -20; % Min
                    0.25 ,    2.5,      maxAnkle,                        Mw,       10 ,       0.1*maxAnkle,         20}; % Max
-               
+               disp('Tau_retio = 12');
+
     case '6N_tagaLike_2Ank_torques_symm_feedback_eq' %removed the higher order adaptation, equalized number of parameters (10)
 
         Mamp = [maxAnkle,...
@@ -196,7 +207,8 @@ switch whichCase
                       1 ,       1,      1,             2,                         4,         1,            0 };
         Range = {  0.02 ,     0.1,    0.2,          mamp,                        mw,       -20; % Min
                    0.25 ,      50,    2.5,          Mamp,                        Mw,        20}; % Max
-               
+            disp('Tau_retio = 12');
+       
     case '6N_tagaLike_2Ank_torques_symm_adaptation_eq' % need to update this
 
         Mamp = [maxAnkle*ones(1,2*nAnkle1),...
@@ -211,7 +223,8 @@ switch whichCase
                       1 ,      1,             3,                         4,        1 ,                 1 ,         1,            0 };
         Range = {  0.02 ,    0.2,             0,                        mw,      -10 ,      -0.1*maxAnkle,        -20; % Min
                    0.25 ,    2.5,          Mamp,                        Mw,       10 ,       0.1*maxAnkle,         20}; % Max
-    
+                   disp('Tau_retio = 12');
+
     case '6N_general_2Ank_torques'
 
         Mamp = [maxAnkle*ones(1,2*nAnkle1),...
@@ -226,7 +239,8 @@ switch whichCase
                       1 ,      1,             1,                        30,        1 ,                 1 ,            0 };
         Range = {  0.02 ,    0.2,             0,                        mw,      -10 ,      -0.1*maxAnkle; % Min
                    0.25 ,    2.5,      maxAnkle,                        Mw,       10 ,       0.1*maxAnkle}; % Max
-               
+                      disp('Tau_retio = 12');
+        
     case '6N_general_2Ank_torques_feedback'
 
         Mamp = [maxAnkle*ones(1,2*nAnkle1),...
@@ -243,7 +257,8 @@ switch whichCase
                       1 ,      1,             1,                        30,        1 ,                 1 ,         1,         0 };
         Range = {  0.02 ,    0.2,             0,                        mw,      -10 ,      -0.1*maxAnkle,        -20; % Min
                    0.25 ,    2.5,      maxAnkle,                        Mw,       10 ,       0.1*maxAnkle,         20}; % Max
-             
+                       disp('Tau_retio = 12');
+     
 %     case '2_level_CPG'   % old version, includes parameters for
 %     % adaptation, tonic input parameter (meaningless here)
 %         Mamp = [maxAnkle*ones(1,2*nAnkle1),...
@@ -270,7 +285,7 @@ switch whichCase
 %         Range = {  0.02 ,    0.2,                  mw,                1.084,           -10,        -20,            -20,              mA,       mD,          mD; % Min
 %                    0.25 ,    20,                   Mw,                10,               10 ,        20,             20,              MA,       MD,          MD}; % Max      
 %                
-    case '2_level_CPG'
+    case '2_level_CPG' % not up to date
         Mamp = [maxAnkle*ones(1,2*nAnkle1),...
             maxAnkle*ones(1,2*nAnkle2),...
             maxHip*ones(1,2*nHip)];
@@ -294,13 +309,10 @@ switch whichCase
                       1 ,      1,             1,                  1,              nP,       nP,          nP,            0 };
         Range = {  0.02 ,    0.2,         1.084,            -20,              mamp,       mD,          mD; % Min
                    0.25 ,    20,             10,                20,              Mamp,       MD,          MD}; % Max      
-               
+                         disp('Tau_retio = 12');
+     
                
     case '2_level_CPG_eq'
-        Mamp = [maxAnkle*ones(1,2*nAnkle1),...
-            maxAnkle*ones(1,2*nAnkle2),...
-            maxHip*ones(1,2*nHip)];
-        mamp = 0*Mamp;
         
         % % Same structure as the 2N CPG
         % Final genome with tau_r + beta (constant tau_u/tau_v ratio) 
@@ -308,21 +320,29 @@ switch whichCase
         Mw = maxW;
         mw = 0*Mw;
         
-        nP = 2;
+        nPA = 1;
+        nPH = 1;
+        nP = nPA+nPH;
         
         Mamp = 20*ones(1,nP);
         mamp = -Mamp;
-        MD = ones(1,nP);
+        MD = ones(1,2*nP);
         mD = 0*MD;
         
+        mPA = repmat([mamp(1),mD(1:2)],1,nPA);
+        MPA = repmat([Mamp(1),MD(1:2)],1,nPA);
+        mPH = repmat([mamp(1),mD(1:2)],1,nPH);
+        MPH = repmat([Mamp(1),MD(1:2)],1,nPH);
+        
         N = 1;
-        Keys = {'\tau_r', 'beta',  '2neuron_symm_weights',    'k_hip_fb',   'PGamp2',  'PGoffset', 'PGduration', 'IC_2_lvl';
-                      1 ,      1,              1,                  1,          nP,       nP,          nP,            0 };
-        Range = {  0.02 ,    0.2,          1.084,                -20,          mamp,       mD,          mD; % Min
-                   0.25 ,    20,              10,                 20,          Mamp,       MD,          MD}; % Max      
+        Keys = {'\tau_r', 'beta',  '2neuron_symm_weights',    'k_hip_fb',   'PulseAnk', 'PulseHip', 'IC_2_lvl';
+                      1 ,      1,              1,                  1,          3*nPA,     3*nPH,  0};
+        Range = {  0.02 ,    0.2,          1.084,                -20,          mPA,       mPH; % Min
+                   0.25 ,    20,              10,                 20,          MPA,       MPH}; % Max      
+                            disp('Tau_retio = 12');
+  
                
-               
-    case '2_level_CPG2'
+    case '2_level_CPG2' % not up to date
         Mamp = [maxAnkle*ones(1,2*nAnkle1),...
             maxAnkle*ones(1,2*nAnkle2),...
             maxHip*ones(1,2*nHip)];
@@ -346,8 +366,9 @@ switch whichCase
                       1 ,      1,                   1,                1,                 1 ,         1,             1,               nP,       nP,          nP,            0 };
         Range = {  0.02 ,    0.2,                  mw,                1.084,           -10,        -20,            -20,              mamp,       mD,          mD; % Min
                    0.25 ,    20,                   Mw,                10,               10 ,        20,             20,              Mamp,       MD,          MD}; % Max      
-               
-    case '2_level_CPG3'
+                            disp('Tau_retio = 12');
+  
+    case '2_level_CPG3' % not up to date
         
         Mamp = [maxAnkle*ones(1,2*nAnkle1),...
             maxAnkle*ones(1,2*nAnkle2),...
@@ -373,7 +394,8 @@ switch whichCase
                       1 ,      1,                   1,                1,                 1 ,         1,             1,              1         nP,       nP,          nP,            0 };
         Range = {  0.02 ,    0.2,                  mw,                1.084,           -10,        -20            -20               0         mamp,       mD,          mD; % Min
                    0.25 ,    20,                   Mw,                10,               10 ,        20             20               1         Mamp,       MD,          MD}; % Max      
-               
+           disp('Tau_retio = 12');
+
     case 'ConSpitz'
 
         % Include amp, offset, and duration of rectangular pulses for the PG
@@ -398,19 +420,26 @@ switch whichCase
         % Include amp, offset, and duration of rectangular pulses for the PG
         Mw = maxW;
         mw = 0*Mw;
+   
+        nPA = 1;
+        nPH = 2;
+        nP = nPA+nPH;
         
-        nP = 3;
-        
-        Mamp = maxHip*ones(1,nP);
+        Mamp = 20*ones(1,nP);
         mamp = -Mamp;
-        MD = ones(1,nP);
+        MD = ones(1,2*nP);
         mD = 0*MD;
         
+        mPA = repmat([mamp(1),mD(1:2)],1,nPA);
+        MPA = repmat([Mamp(1),MD(1:2)],1,nPA);
+        mPH = repmat([mamp(1),mD(1:2)],1,nPH);
+        MPH = repmat([Mamp(1),MD(1:2)],1,nPH);
+        
         N = 1;
-        Keys = { 'omega' 'PGamp3',  'PGoffset', 'PGduration', 'IC_1_lvl';
-                      1      nP,       nP,          nP,            0 };
-        Range = {   0.5      mamp,       mD,          mD; % Min
-                      2      Mamp,       MD,          MD}; % Max
+        Keys = { 'omega',   'PulseAnk', 'PulseHip', 'IC_1_lvl';
+                      1        3*nPA,     3*nPH,         0 };
+        Range = {   0.5          mPA,       mPH; % Min
+                      2          MPA,       MPH}; % Max
                   
     case 'ConSpitz2'
 
@@ -458,9 +487,7 @@ switch whichCase
         error('invalid input');
 end
 
-disp('The defined Genome is:')
-disp('Tau_retio = 12');
-disp(['case: ',whichCase]);
+
 for i=1:(length(Keys)-1)
     disp([Keys{1,i},' :']);
     disp(['    number of elements: ',num2str(Keys{2,i})]);

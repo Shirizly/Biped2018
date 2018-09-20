@@ -12,13 +12,13 @@ whichCPGp{3} = 'ConSpitz_eq';
 whichCPGp{4} = '2_level_CPG';
 whichCPGp{5} = '2_level_CPG_eq'; 
 
-CPGlist = [5]
+CPGlist = [3,3];
 % Number of GA runs:
-nRuns = 1;
+nRuns = 2;
 
 % Evulotionary parameters:
-MoogaGen = 60;
-MoogaPop = 2500;
+MoogaGen = 20;
+MoogaPop = 500;
 
 % Stochastic terrain parameters:
 % setup for StoFit:
@@ -66,6 +66,11 @@ for j = 1:nStruct
         GA.xend = xend;
         GA.nTerForSto = nTerForSto;
         GA.TerFileName = TerFileName;
+        if j == 1
+            GA = GA.SetFittest(15,60,5);
+        else
+            GA = GA.SetFittest(15,15,5);
+        end
         
         %run
         MOGA_Run(GA,whichCPG,whichGA_Case,i)

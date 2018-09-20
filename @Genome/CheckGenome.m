@@ -63,7 +63,7 @@ function [ Result, Seq ] = CheckGenome( Ge, Seq )
                     Result{2} = ['Compound torque reduced by factor of ',num2str(factor)];
                 end
                 
-            case 'PGamp'
+            case {'PGamp','PGamp2','PGamp3'}
                 NPulses = Ge.Keys{2,k};
                 dp = Ge.Keys{2,k};
                 for p = 1:NPulses
@@ -74,11 +74,23 @@ function [ Result, Seq ] = CheckGenome( Ge, Seq )
                         % so that End will be slightly smaller than 1
                         Seq(SeqPos+p-1+dp*2) = 0.999 - Seq(SeqPos+dp+p-1);
                         Result{2} = 'Pulse shortened';
-                    end
-                    
-                    
+                    end                   
                 end
                 SeqPos = SeqPos + Ge.Keys{2,k}*2; % because decoding amp decode also offset and duration
+                
+            case {'nPA','nPH'}
+                NPulses = Ge.Keys{2,k};
+                for p = 1:3:NPulses
+                    % Check that the pulse ends before the phase resets
+                    End = Seq(SeqPos+p)+Seq(SeqPos+p+1);
+                    if End>1
+                        % Shorten the duration
+                        % so that End will be slightly smaller than 1
+                        Seq(SeqPos+p+1) = 0.999 - Seq(SeqPos+p);
+                        Result{2} = 'Pulse shortened';
+                    end                   
+                end
+                
             case 'ExtPulses'
                 NPulses = Ge.Keys{2,k}(1);
                 SeqPos0 = SeqPos;

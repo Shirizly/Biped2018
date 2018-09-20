@@ -455,6 +455,7 @@ classdef MOOGA
             % the flat terrain simulation ended succesfully (without falling down,
             % etc.)
             if ~isempty(sim.Period)
+%                 tic
                 passV = zeros(1,n);
                 distV = zeros(1,n);
                 for i=1:n
@@ -487,14 +488,20 @@ classdef MOOGA
 %                      disp(sim.Out.SuppPos(end,1))
                     %             nsteps = sim.Out.nSteps;
                     passV(i) = 0.1*(sim.Out.SuppPos(end,1)/GA.xend>=1);
-                    distV(i) = max(0.1*(sim.Out.SuppPos(end,1)/GA.xend<1)*(min(sim.Out.SuppPos(end,1)/GA.xend,1)),0);
+                    % calculating distance for failed attempts, 0 if
+                    % success, 0.1*dist if failed
+%                     distV(i) = max(0.1*(sim.Out.SuppPos(end,1)/GA.xend<1)*(min(sim.Out.SuppPos(end,1)/GA.xend,1)),0);
                     
+                    distV(i) = max((min(sim.Out.SuppPos(end,1)/GA.xend,1)),0);
                 end
-                distV = distV(find(passV==0));
+%                 distV = distV(find(passV==0));
                 if isempty(distV)
                     distV = 0;
                 end
-                fit = sum(passV)+mean(distV);
+%                 fit = sum(passV)+mean(distV);
+                fit = mean(distV);
+%                 tex = toc;
+%                 disp(['Robustness fitness = ' num2str(tex)]);
             end
             out = [];
         end
@@ -701,12 +708,13 @@ classdef MOOGA
                 out = [];
                 return;
             end
-                
+%               tic  
             % Run the upslope test
             [up_fit,up_out] = MOOGA.SlopeFit(Sim,1);
             % Run the downslope test
             [down_fit,down_out] = MOOGA.SlopeFit(Sim,-1);
-            
+%             tex = toc;
+%             disp(['Slope fitness = ' num2str(tex)]);
             fit = [up_fit*down_fit];% up_fit down_fit];
             
             UDSim = deepcopy(Sim);
