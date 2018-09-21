@@ -79,8 +79,8 @@ function [ Result, Seq ] = CheckGenome( Ge, Seq )
                 SeqPos = SeqPos + Ge.Keys{2,k}*2; % because decoding amp decode also offset and duration
                 
             case {'nPA','nPH'}
-                NPulses = Ge.Keys{2,k};
-                for p = 1:3:NPulses
+                seqlen = Ge.Keys{2,k};
+                for p = 1:3:seqlen
                     % Check that the pulse ends before the phase resets
                     End = Seq(SeqPos+p)+Seq(SeqPos+p+1);
                     if End>1
@@ -89,6 +89,13 @@ function [ Result, Seq ] = CheckGenome( Ge, Seq )
                         Seq(SeqPos+p+1) = 0.999 - Seq(SeqPos+p);
                         Result{2} = 'Pulse shortened';
                     end                   
+                end
+                if (seqlen/3)>1 % for 2 pulses case - ordering the pulses based on offset
+                    if Seq(SeqPos+1)<Seq(SeqPos+4) % first pulse comes after scond pulse
+                        tempseq = Seq(SeqPos:SeqPos+2); % reordering the sequence
+                        Seq(SeqPos:SeqPos+2) = Seq(SeqPos+3:SeqPos+5);
+                        Seq(SeqPos+3:SeqPos+5) = tempseq;
+                    end
                 end
                 
             case 'ExtPulses'
