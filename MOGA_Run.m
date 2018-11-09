@@ -92,12 +92,12 @@ GA.Sim.Env = GA.Sim.Env.Set('Type','inc','start_slope',start_slope);
 
 % Initialize the controller
 switch whichCPG
-    case {'ConSpitz','ConSpitz2','ConSpitz3','ConSpitz_eq'}
+    case {'ConSpitz','ConSpitz2','ConSpitz3','ConSpitz_eq','ConSpitz_eq_adaptation'}
         GA.Sim.Con = ConSpitz;
         GA.Sim.Con.MinSat = [-maxAnkle,-maxHip];
         GA.Sim.Con.MaxSat = [ maxAnkle, maxHip];
         GA.Sim.Con.stDim = 1;
-        GA.Sim.Con.FAM = whichCPG;
+        GA.Sim.Con.ExtP_reset = 0;
     case {'2_level_CPG','2_level_CPG2','2_level_CPG3','2_level_CPG_eq'}
         GA.Sim.Con = Controller;
         GA.Sim.Con.MinSat = [-maxAnkle,-maxHip];
@@ -108,13 +108,15 @@ switch whichCPG
         GA.Sim.Con = Matsuoka;
         GA.Sim.Con.startup_t = 1.0; % Give some time for the neurons to converge
         % before applying a torque
-        GA.Sim.Con.FBType = 0; % no slope feedback
+        GA.Sim.Con.FBType = 0; % no adaptation
         GA.Sim.Con.nPulses = N;
         GA.Sim.Con.stDim = 4*N;
         GA.Sim.Con = GA.Sim.Con.SetOutMatrix([nAnkle1,nAnkle1,nHip]);
         GA.Sim.Con.MinSat = [-maxAnkle,-maxHip];
         GA.Sim.Con.MaxSat = [ maxAnkle, maxHip];
 end
+
+
 % Simulation parameters
 GA.Sim.IC = [start_slope, start_slope, 0, 0, zeros(1, GA.Sim.Con.stDim)];
 dur = 20;
@@ -153,7 +155,12 @@ end
 GA.NFit = size(GA.FitIDs,2);
 GA.Sim.PMFull = 1; % Run poincare map on all coords
 
-GA = GA.InitGen();
+if contains(whichCPG,'adap')
+    GA.Sim.Con.FBType = 1;
+    GA = GA.InitGenAdap();
+else
+    GA = GA.InitGen();
+end
 %%
 
 % Update MOOGA parameters after each generation
@@ -171,8 +178,8 @@ function GA = GenFcn(GA)
 end
 GA.GenerationFcn = @GenFcn;
 
-
+%%
 GA = GA.Run();
 GA.Plot('Fit');
-
+%%
 end

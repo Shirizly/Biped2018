@@ -30,8 +30,13 @@ switch whichCase
         maxW = 5;
         minW = 0;
     case {'6N_tagaLike_2Ank_torques','6N_tagaLike_2Ank_torques_symm',...
-            '6N_tagaLike_2Ank_torques_symm_feedback','6N_tagaLike_2Ank_torques_symm_feedback_eq','6N_tagaLike_2Ank_torques_symm_with_rescale',...
-            '6N_general_2Ank_torques','6N_general_2Ank_torques_feedback','2_level_CPG','2_level_CPG_eq','2_level_CPG2','2_level_CPG3','ConSpitz','ConSpitz2','ConSpitz3','ConSpitz_eq'}
+            '6N_tagaLike_2Ank_torques_symm_feedback',...
+            '6N_tagaLike_2Ank_torques_symm_feedback_eq',...
+            '6N_tagaLike_2Ank_torques_symm_feedback_eq_adaptation',...
+            '6N_tagaLike_2Ank_torques_symm_with_rescale',...
+            '6N_general_2Ank_torques','6N_general_2Ank_torques_feedback',...
+            '2_level_CPG','2_level_CPG_eq','2_level_CPG2','2_level_CPG3',...
+            'ConSpitz','ConSpitz2','ConSpitz3','ConSpitz_eq','ConSpitz_eq_adaptation'}
         nAnkle1 = 1; % Number of ankle1 torque pulses
         nAnkle2 = 1; % Number of ankle2 torques pulses
         nHip = 1;   % Number of hip torques
@@ -207,22 +212,30 @@ switch whichCase
                       1 ,       1,      1,             2,                         4,         1,            0 };
         Range = {  0.02 ,     0.1,    0.2,          mamp,                        mw,       -20; % Min
                    0.25 ,      50,    2.5,          Mamp,                        Mw,        20}; % Max
-            disp('Tau_retio = 12');
+            
+               disp('Tau_retio = 12');
        
-    case '6N_tagaLike_2Ank_torques_symm_adaptation_eq' % need to update this
+    case '6N_tagaLike_2Ank_torques_symm_feedback_eq_adaptation' % need to update this
 
-        Mamp = [maxAnkle*ones(1,2*nAnkle1),...
-            maxAnkle*ones(1,2*nAnkle2),...
-            maxHip*ones(1,2*nHip)];
+        Mamp = [maxAnkle,...
+            maxHip];
         mamp = 0*Mamp;
+        
+        Madap = [1,1,100,100];
+        madap = -Madap;
         
         mw = 0*ones(1,4);
         Mw = maxW*ones(1,4);
-         
-        Keys = {'\tau_r', 'beta', 'amp_6n_symm',  '6neuron_taga_like_symm', 'ks_\tau',     'ks_c_6n_symm','k_hip_fb', 'IC_matsuoka';
-                      1 ,      1,             3,                         4,        1 ,                 1 ,         1,            0 };
-        Range = {  0.02 ,    0.2,             0,                        mw,      -10 ,      -0.1*maxAnkle,        -20; % Min
-                   0.25 ,    2.5,          Mamp,                        Mw,       10 ,       0.1*maxAnkle,         20}; % Max
+        
+%         Keys = {'\tau_r','\tau_ratio', 'beta', 'amp_6n_semisymm',  '6neuron_taga_like_symm', 'k_hip_fb', 'k_adap' , 'dt_nom' , 'IC_matsuoka';
+%                       1 ,       1,      1,             2,                         4,             1,          4     ,  1   0 };
+%         Range = {  0.02 ,     0.1,    0.2,          mamp,                        mw,            -20,         madap,   0 ; % Min
+%                    0.25 ,      50,    2.5,          Mamp,                        Mw,             20,         Madap,    1 }; % Max           
+       Keys = {'\tau_r','\tau_ratio', 'beta', 'amp_6n_semisymm',  '6neuron_taga_like_symm', 'k_hip_fb', 'k_adap' , 'IC_matsuoka';
+                      1 ,       1,      1,             2,                         4,             1,          4   ,  0 };
+        Range = {  0.02 ,     0.1,    0.2,          mamp,                        mw,            -20,         madap; % Min
+                   0.25 ,      50,    2.5,          Mamp,                        Mw,             20,         Madap}; % Max           
+
                    disp('Tau_retio = 12');
 
     case '6N_general_2Ank_torques'
@@ -294,8 +307,6 @@ switch whichCase
         % % Same structure as the 2N CPG
         % Final genome with tau_r + beta (constant tau_u/tau_v ratio) 
         % Include amp, offset, and duration of rectangular pulses for the PG
-        Mw = maxW;
-        mw = 0*Mw;
         
         nP = 4;
         
@@ -317,8 +328,6 @@ switch whichCase
         % % Same structure as the 2N CPG
         % Final genome with tau_r + beta (constant tau_u/tau_v ratio) 
         % Include amp, offset, and duration of rectangular pulses for the PG
-        Mw = maxW;
-        mw = 0*Mw;
         
         nPA = 1;
         nPH = 1;
@@ -441,6 +450,34 @@ switch whichCase
         Range = {   0.5          mPA,       mPH; % Min
                       2          MPA,       MPH}; % Max
                   
+    case 'ConSpitz_eq_adaptation'
+ 
+        % Include amp, offset, and duration of rectangular pulses for the PG
+        Mw = maxW;
+        mw = 0*Mw;
+   
+        nPA = 1;
+        nPH = 2;
+        nP = nPA+nPH;
+        
+        Mamp = 20*ones(1,nP);
+        mamp = -Mamp;
+        MD = ones(1,2*nP);
+        mD = 0*MD;
+        
+        Madap = [1,1,100,100];
+        madap = -Madap;
+        
+        mPA = repmat([mamp(1),mD(1:2)],1,nPA);
+        MPA = repmat([Mamp(1),MD(1:2)],1,nPA);
+        mPH = repmat([mamp(1),mD(1:2)],1,nPH);
+        MPH = repmat([Mamp(1),MD(1:2)],1,nPH);
+        
+        N = 1;
+        Keys = { 'omega',   'PulseAnk', 'PulseHip','k_adap', 'IC_1_lvl';
+                      1        3*nPA,     3*nPH, 4,         0 };
+        Range = {   0.5          mPA,       mPH, madap; % Min
+                      2          MPA,       MPH, Madap}; % Max
     case 'ConSpitz2'
 
         

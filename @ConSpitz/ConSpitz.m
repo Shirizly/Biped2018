@@ -90,6 +90,10 @@ classdef ConSpitz < handle & matlab.mixin.Copyable
         sTorques_s = 0;
         k_om = 0;
         
+%       Adaptation parameters:
+        k_a = zeros(2,2); % matrix tying the feedback (angle sum and difference) to the parameters (tau and amp)
+        dtnom = 0.3;
+        dtconv = 1;
         % Saturation
 %         MinSat; MaxSat;
         
@@ -185,7 +189,27 @@ classdef ConSpitz < handle & matlab.mixin.Copyable
             diff(diff<-Range/2) = diff(diff<-Range/2) + Range;
         end
         
-        
+         function [NC] = Adaptation(NC,X)
+			% % % slope adaptaion:
+            switch NC.FBType
+                case 0
+                    % NO FEEDBACK
+                case 1
+                    % Apply higher-level adaptation:
+                    P0 = [NC.tau0;0];
+                    t1 = X(1);
+                    t2 = X(2);
+                    FB = [(t1+t2)/2;(t1-t2)-NC.dtnom]; % FB is: slope's angle, difference in relative angle between the legs (compared to nominal)
+                    P = P0+NC.k_a*FB;
+                    NC.tau = max(P(1),0.02);
+                    NC.tav = NC.tau_ratio*NC.tau;
+                    NC.Amp = min(NC.Amp0+P(2)*ones(size(NC.Amp0)),20);
+                case 2 % learning the nominal delta-theta for the adaptation
+                    dt = X(1)-X(2);
+                    NC.dtconv = abs(NC.dtnom - dt);
+                    NC.dtnom = dt;
+            end
+        end
         
         % %%%%%% % Derivative % %%%%%% %
         function [Xdot] = Derivative(NC, ~, Xmod, X) % here MO stands for the controller
@@ -217,16 +241,16 @@ classdef ConSpitz < handle & matlab.mixin.Copyable
         function [NC,Xa] = HandleEvent(NC, EvID, Xb)
             Xa = Xb;
             switch EvID
-                case 1
-                    % original phase reset (phase equal to 1)
-                    for i=1:NC.nPulses
-                        NC.Switch(i) = 0; % switching off all pulses
-                        if NC.Offset(i)==0;
-                            % Turn on signal now
-                            NC.Switch(i) = NC.Amp(i);
-                        end
-                    end
-                    Xa(end) = NC.P_reset; % reset phase
+%                 case 1
+%                     % original phase reset (phase equal to 1)
+%                     for i=1:NC.nPulses
+%                         NC.Switch(i) = 0; % switching off all pulses
+%                         if NC.Offset(i)==0;
+%                             % Turn on signal now
+%                             NC.Switch(i) = NC.Amp(i);
+%                         end
+%                     end
+%                     Xa(end) = NC.P_reset; % reset phase
 
                     
 %                 case 2
@@ -285,37 +309,19 @@ classdef ConSpitz < handle & matlab.mixin.Copyable
             if ~isempty(NC.ExtP_reset)
                 % Perform a phase reset
                 
-                if  contains(NC.FAM,'ConSpitz2')
-                    NC.omega = NC.omega/(Xcon(end)); % this allows the PG to update on the MO frequency, either once or once per cycle
-                else
-                    if contains(NC.FAM,'ConSpitz3')
-                        NC.omega = NC.omega*(1+ NC.k_om*(1-Xcon(end))); % 3rd method frequency adaptation
+                
+                NC = NC.Adaptation(Xmod);
+                
+                for i=1:NC.nPulses
+                    NC.Switch(i) = 0; % switching off all pulses
+                    if NC.Offset(i)==0;
+                        % Turn on signal now
+                        NC.Switch(i) = NC.Amp(i);
                     end
                 end
-                Xcon = NC.ExtP_reset;
-                    % Check if any event happens at ExtP_reset
-                    [value, it, dir] = NC.Events(Xcon); %#ok<NASGU,ASGLU>
-                EvIDs = find(value == 0);
-                for ev = 1:length(EvIDs)
-                    [NC,Xcon] = NC.HandleEvent(EvIDs(ev),Xcon);
-                end
+                Xcon = NC.ExtP_reset; % reset phase
             end
-            
-            switch NC.FBImpulse
-                case 1 % 1 - add a constant value
-                    Xmod(3:4) = Xmod(3:4) + NC.AngVelImp;
-                case 2 % 2 - set ang. vel. to certain value
-%                     delta = NC.AngVelImp - Xmod(3:4)
-                    Xmod(3:4) = NC.AngVelImp;
-            end
-            
-            % Activate external pulses
-%             NC.Switch(NC.ExtPulses) = NC.Amp(NC.ExtPulses);
-%             NC.Offset(NC.ExtPulses) = NC.GetPhasePerc(Xcon);
-%             % Set the torque to get turned off after the neuron fires if
-%             % the off event is larger than 100% of osc. period
-%             Overflow = NC.Offset(NC.ExtPulses)+NC.Duration(NC.ExtPulses)>1;
-%             NC.Offset(NC.ExtPulses) = NC.Offset(NC.ExtPulses) - Overflow;
+
         end
         
         function PlotTorques(NC,tstep,mux)

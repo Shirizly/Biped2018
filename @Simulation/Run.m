@@ -215,6 +215,7 @@ function [ sim ] = Run( sim )
                    ones(length(TTemp),1)*sim.Mod.xS, ...
                    ones(length(TTemp),1)*sim.Mod.yS]; %#ok<AGROW>
         X = [X; XTemp]; %#ok<AGROW>
+%         save('state_trajectory.mat','X');
         sim.Out.T = [sim.Out.T; TTemp];
         
         if sim.nOuts>0

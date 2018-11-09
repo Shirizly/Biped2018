@@ -86,11 +86,10 @@ classdef Matsuoka < handle & matlab.mixin.Copyable
         % Saturation
         MinSat; MaxSat;
         
-        % Higher level speed command parameters
-        s_in = 0;    % Speed input - higher level input to control the
-                     % desired walking speed
-        ks_tau = 0;	% gain on tau
-        ks_out = 0; % gain on the tonics inputs
+        % Adaptation parameters:
+        k_a = zeros(2,2); % matrix tying the feedback (angle sum and difference) to the parameters (tau and amp)
+        dtnom = 0.3;
+        dtconv = 1;
         
         % parameters for MOGA use:
         des_period = 1.4; % desired period for rescaling method.
@@ -179,30 +178,26 @@ classdef Matsuoka < handle & matlab.mixin.Copyable
 %             diff(diff<-Range/2) = diff(diff<-Range/2) + Range;
         end
         
-        function [MO] = Adaptation(MO, ~)
+        function [MO] = Adaptation(MO,X)
 			% % % slope adaptaion:
-            if MO.FBType == 0
-                % NO FEEDBACK
-%                 MO.omega = MO.omega0;
-%                 MO.Amp = MO.Amp0;
-            else
-%                 MO.omega = MO.omega0 + ...
-%                     min(0,Phi)*MO.kOmega_d + ...    % Phi<0
-%                     max(0,Phi)*MO.kOmega_u;         % Phi>0
-%                 MO.Amp = MO.Amp0 + ...
-%                     min(0,Phi)*MO.kTorques_d + ...  % Phi<0
-%                     max(0,Phi)*MO.kTorques_u;       % Phi>0
+            switch MO.FBType
+                case 0
+                    % NO FEEDBACK
+                case 1
+                    % Apply higher-level adaptation:
+                    P0 = [MO.tau0;0];
+                    t1 = X(1);
+                    t2 = X(2);
+                    FB = [(t1+t2)/2;(t1-t2)-MO.dtnom]; % FB is: slope's angle, difference in relative angle between the legs (compared to nominal)
+                    P = P0+MO.k_a*FB;
+                    MO.tau = max(P(1),0.02);
+                    MO.tav = MO.tau_ratio*MO.tau;
+                    MO.Amp = min(MO.Amp0+P(2)*ones(size(MO.Amp0)),20);
+                case 2 % learning the nominal delta-theta for the adaptation
+                    dt = X(1)-X(2);
+                    MO.dtconv = abs(MO.dtnom - dt);
+                    MO.dtnom = dt;
             end
-            
-            % % % % Apply higher-level speed input
-            MO.tau = MO.tau0 + MO.ks_tau*MO.s_in;
-            MO.tau = max(MO.tau, 0.01); % Tau has to be > 0
-            MO.tav = MO.tau_ratio*MO.tau;
-            MO.Amp = MO.Amp0 + MO.ks_out*MO.s_in;
-            MO.Amp = max(MO.Amp, 0.01); % Amp has to be > 0
-            % Update the weight matrix
-            MO.W = (diag(1./MO.Amp)*(diag(MO.Amp)*(MO.win+MO.wex))')';
-%             MO.W = min(max(MO.W, -10),100); % Bound the weights
         end
         
         % %%%%%% % Derivative % %%%%%% %
@@ -213,7 +208,7 @@ classdef Matsuoka < handle & matlab.mixin.Copyable
             % % feed back to hip:
             feedE1 = [0;0;0;0;...
                 -MO.k_hip_fb * MO.legSwitch *(Xmod(2) - Xmod(1));...
-                +MO.k_hip_fb * MO.legSwitch * (Xmod(2) - Xmod(1));];
+                +MO.k_hip_fb * MO.legSwitch * (Xmod(2) - Xmod(1))];
                 
             % % Maybe add synch to the hip joint angular speed?
 			% feedE2 = [0;0;0;0;...
@@ -224,7 +219,6 @@ classdef Matsuoka < handle & matlab.mixin.Copyable
             u = X(1:2*MO.nPulses,:);
             v = X(2*MO.nPulses+1:end,:);
             y = max(u,0);
-            
             udot = 1/MO.tau*(-u - MO.beta*v + MO.Amp - MO.wex*y +feedE1);
             vdot = 1/MO.tav*(-v+y);
             
@@ -249,10 +243,10 @@ classdef Matsuoka < handle & matlab.mixin.Copyable
         
         function [MO, Xmod, Xcon] = HandleExtFB(MO, Xmod, Xcon, Slope)
             % This function is called when the leg hits the ground
-%             if MO.FBType > 0
-%                 % Perform adaptation based on terrain slope
-                MO = MO.Adaptation(Slope);
-%             end
+
+                % Perform adaptation based on terrain slope
+                MO = MO.Adaptation(Xmod);
+
                 
                 % switching CPG to the stance ankle:
                 MO.ankleSelect = bitxor(MO.ankleSelect,[true,true,false]);

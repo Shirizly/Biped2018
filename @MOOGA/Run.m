@@ -7,9 +7,9 @@ function [ GA ] = Run( GA )
 nochange = 0;
 pmax = [0 0 0];
 
-if GA.Sim.Graphics == 1
-    GA.Sim.Fig = figure();
-end
+% if GA.Sim.Graphics == 1
+%     GA.Sim.Fig = figure();
+% end
 
 if isempty(gcp('nocreate'))
     parpool(4) % Work in parallel to finish faster
@@ -61,8 +61,8 @@ for g = GA.Progress+1:GA.Generations
 
     parfor i = 1:GA.Population
 %      for i = 1:GA.Population
-% 
-%          disp(i);
+%         disp(i);
+        
         % don't run Seqs that you already run before:
         
         if any(gFits(i,:)~=0)

@@ -1,3 +1,6 @@
+addpath(genpath('Results analysis'));
+addpath(genpath('results 0921'));
+
 %% Running the resulting controller of the GA process through a simulation
 
 % first load GA reult .mat
@@ -19,8 +22,8 @@ GAend = GA.Progress;
 % %         np = 4;
 % end
 
-%% Taking the top controller for the first FF:
-ind = find(fits(:,1,GAend)==max(fits(:,1,GAend)));
+% Taking the top controller for the i-st FF:
+ind = find(fits(:,6,GAend)==max(fits(:,6,GAend)));
 seq = seqs(ind,:,GAend)
 fit = fits(ind,:,GAend)
 
@@ -82,7 +85,9 @@ hold off
 
 ter_type = 1;
 
-sim = tryToWalk4(seq,ter_type);
+% sim = tryToWalk4(seq,ter_type);
+sim = tryToWalkMatsuoka(seq,ter_type);
+
 % ter = 5
 % sim = tryToWalk2(seq,ter_type,ppv{ter},dppv{ter},whichCPG);
 
@@ -91,3 +96,10 @@ sim = tryToWalk4(seq,ter_type);
 
 
 sim = tryToWalk3(sim);
+
+
+
+% %% low ankle torque:
+% ind = find(seqs(:,4,end)<0.01);
+% 
+% ind2 = find(fits(ind,5

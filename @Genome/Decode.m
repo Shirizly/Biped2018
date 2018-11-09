@@ -160,6 +160,11 @@ for k = 1:size(Ge.Keys,2)
 % %             MIC(1) = 10;
 % %             MIC(3) = u_ss;
 %             Sim.IC(Sim.ConCo) = MIC;
+
+        case 'k_adap'
+            Sim.Con.k_a = [Seq(SeqPos:SeqPos+1);Seq(SeqPos+2:SeqPos+3)];
+        case 'dt_nom'
+            Sim.Con.dtnom = Seq(SeqPos);
         %% %%%%%%%%%% Model keys %%%%%%%%%% %%
         case Sim.Mod.SetKeys
             Sim.Mod = Sim.Mod.Set(Ge.Keys{1,k},Seq(SeqPos:SeqPos+Ge.Segments(k)-1));

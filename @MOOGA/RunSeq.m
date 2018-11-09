@@ -60,7 +60,7 @@ wSim.Con = wSim.Con.HandleEvent(1, wSim.IC(wSim.ConCo));
 
 
 if strcmp(wSim.Con.name, 'Matsuoka')
-    wSim.Con = wSim.Con.Adaptation();
+%     wSim.Con = wSim.Con.Adaptation();
     
     %%%%%%%%%%%%%%% Separate Matsuoka simulation %%%%%%%%%%%%%%%%
     % Run this code to see how the neuronal controller converges
@@ -168,19 +168,34 @@ end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
-
-
-
-
+convcheck = 0;
+if wSim.Con.FBType == 1
+    Sim_tic = tic;
+    preSim = deepcopy(wSim);
+    preSim.Con.FBType = 2;
+    preSim = preSim.Run();
+    
+    Sim_runTime = toc(Sim_tic);
+    if ~isempty(preSim.Period)
+        wSim.Con.dtnom = preSim.Con.dtnom;
+        Sim_tic = tic;
+        wSim = wSim.Run();
+        Sim_runTime = toc(Sim_tic);
+        convcheck = 1;
+    else
+        wSim = preSim;
+    end
+else
 
 
 
 % Run the simulation
-Sim_tic = tic;
-% save('wsim_from_runseq.mat','wSim');
 
+% save('wsim_from_runseq.mat','wSim');
+Sim_tic = tic;
 wSim = wSim.Run();
 Sim_runTime = toc(Sim_tic);
+end
 
 
 % save('wsim_from_runseq2.mat','wSim');
@@ -224,7 +239,7 @@ for f = 1:NFit
         for o = 1:length(Outs)
             wSim.Out = wSim.JoinOuts(thisOuts{Outs(o)});
         end
-        wSim.Con.FBType = 2;
+%         wSim.Con.FBType = 2;
     end
 
     % Call the fitness function
@@ -249,6 +264,10 @@ for f = 1:NFit
             end
         end                    
     end
+    if contains(func2str(FitFcn{f}),'VelFit') && ~contains(func2str(FitFcn{f}),'AS') && (convcheck == 1)
+        thisFit(FitInd{f}) = thisFit(FitInd{f})-10;
+    end
+    
 
     %%%% REMOVED FOR THE TAGA-LIKE CASE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % % % % TODO: return this when going back to the general case!!!

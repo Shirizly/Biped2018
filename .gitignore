@@ -1,9 +1,13 @@
 results 0902/
+results 0912/
+results 1024/
+results for later/
 results 0816/
 Old results/
 Graphs/
 *.bmp
 *.fig
 *.asv
+*.mat
 MatsuokaGenome.mat/
 
