@@ -88,7 +88,6 @@ classdef MOOGA
         nseg = 5;
         ppv = [];
         dppv = [];
-        
     end
     
     methods
@@ -446,67 +445,134 @@ classdef MOOGA
 
 
 
-        function [fit,out] = StoFit(GA,sim) %new one
-            
+%         function [fit,out] = StoFit(GA,sim) %new one
+%             
+%             fit = 0;
+%             n = GA.nTerForSto;
+%             
+%             % The if makes sure the robot enters the sto. testing only if
+%             % the flat terrain simulation ended succesfully (without falling down,
+%             % etc.)
+%             if ~isempty(sim.Period)
+% %                 tic
+%                 passV = zeros(1,n);
+%                 distV = zeros(1,n);
+%                 for i=1:n
+%                     if contains(sim.Con.name,'2 level CPG')
+%                     sim.Con.omega = sim.Con.IC_MO(end);
+% 
+%                     sim.Con.omega_c = 1;
+%                     sim.Con.startup_c = 1;
+%                     sim.Con = sim.Con.Reset(sim.IC(end));
+%                     else
+%                         sim.Con.startup_t = 1;
+%                     end
+%                     
+%                     sim.IC(sim.ConCo) = sim.Con.IC_MO(1:end-1);
+%                     sim.Mod.xS = 0;
+%                     sim.Mod.yS = 0;
+%                     sim.IC(sim.ModCo) = zeros(1,length(sim.ModCo));
+%                     sim.Con.FBType = 0;
+%                     sim.Mod.LegShift = sim.Mod.Clearance;
+%                     sim = sim.SetTime(0,0.1,GA.xend*3);
+%                    
+%                     
+%                     sim.Env = sim.Env.Set('Type',7,'pp',GA.ppv{i},'dpp',GA.dppv{i});
+%                     sim = sim.Init();
+%                     
+% %                     filename = ['z_sim_from_sto_' num2str(i)];
+% %                     save(filename,'sim');
+% 
+%                     sim = sim.Run();
+% %                      disp(sim.Out.SuppPos(end,1))
+%                     %             nsteps = sim.Out.nSteps;
+%                     passV(i) = 0.1*(sim.Out.SuppPos(end,1)/GA.xend>=1);
+%                     % calculating distance for failed attempts, 0 if
+%                     % success, 0.1*dist if failed
+% %                     distV(i) = max(0.1*(sim.Out.SuppPos(end,1)/GA.xend<1)*(min(sim.Out.SuppPos(end,1)/GA.xend,1)),0);
+%                     
+%                     distV(i) = max((min(sim.Out.SuppPos(end,1)/GA.xend,1)),0);
+%                 end
+% %                 distV = distV(find(passV==0));
+%                 if isempty(distV)
+%                     distV = 0;
+%                 end
+% %                 fit = sum(passV)+mean(distV);
+%                 fit = mean(distV);
+% %                 tex = toc;
+% %                 disp(['Robustness fitness = ' num2str(tex)]);
+%             end
+%             out = [];
+%         end
+        
+        function [fit,out] = StoFit(GA,sim) %even newer one
+
             fit = 0;
+            difficulty = 0;
             n = GA.nTerForSto;
-            
+
             % The if makes sure the robot enters the sto. testing only if
             % the flat terrain simulation ended succesfully (without falling down,
             % etc.)
+
             if ~isempty(sim.Period)
-%                 tic
-                passV = zeros(1,n);
-                distV = zeros(1,n);
-                for i=1:n
-                    if contains(sim.Con.name,'2 level CPG')
-                    sim.Con.omega = sim.Con.IC_MO(end);
+                %                 tic
+                while difficulty>=0
+                    passV = zeros(1,n);
+                    distV = zeros(1,n);
+                    for i=1:n
+                        if contains(sim.Con.name,'2 level CPG')
+                            sim.Con.omega = sim.Con.IC_MO(end);
 
-                    sim.Con.omega_c = 1;
-                    sim.Con.startup_c = 1;
-                    sim.Con = sim.Con.Reset(sim.IC(end));
-                    else
-                        sim.Con.startup_t = 1;
+                            sim.Con.omega_c = 1;
+                            sim.Con.startup_c = 1;
+                            sim.Con = sim.Con.Reset(sim.IC(end));
+                        else
+                            sim.Con.startup_t = 1;
+                        end
+
+                        sim.IC(sim.ConCo) = sim.Con.IC_MO(1:end-1);
+                        sim.Mod.xS = 0;
+                        sim.Mod.yS = 0;
+                        sim.IC(sim.ModCo) = zeros(1,length(sim.ModCo));
+                        sim.Con.FBType = 0;
+                        sim.Mod.LegShift = sim.Mod.Clearance;
+                        sim = sim.SetTime(0,0.1,GA.xend*3);
+
+
+                        sim.Env = sim.Env.Set('Type',7,'pp',GA.ppv{difficulty+1,i},'dpp',GA.dppv{difficulty+1,i});
+                        sim = sim.Init();
+
+                        %                     filename = ['z_sim_from_sto_' num2str(i)];
+                        %                     save(filename,'sim');
+
+                        sim = sim.Run();
+                        %                      disp(sim.Out.SuppPos(end,1))
+                        %             nsteps = sim.Out.nSteps;
+                        passV(i) = (sim.Out.SuppPos(end,1)/GA.xend>=1);
+                        % calculating distance for failed attempts, 0 if
+                        % success, 0.1*dist if failed
+                        %                     distV(i) = max(0.1*(sim.Out.SuppPos(end,1)/GA.xend<1)*(min(sim.Out.SuppPos(end,1)/GA.xend,1)),0);
+
+                        distV(i) = max((min(sim.Out.SuppPos(end,1)/GA.xend,1)),0);
                     end
-                    
-                    sim.IC(sim.ConCo) = sim.Con.IC_MO(1:end-1);
-                    sim.Mod.xS = 0;
-                    sim.Mod.yS = 0;
-                    sim.IC(sim.ModCo) = zeros(1,length(sim.ModCo));
-                    sim.Con.FBType = 0;
-                    sim.Mod.LegShift = sim.Mod.Clearance;
-                    sim = sim.SetTime(0,0.1,GA.xend*3);
-                   
-                    
-                    sim.Env = sim.Env.Set('Type',7,'pp',GA.ppv{i},'dpp',GA.dppv{i});
-                    sim = sim.Init();
-                    
-%                     filename = ['z_sim_from_sto_' num2str(i)];
-%                     save(filename,'sim');
-
-                    sim = sim.Run();
-%                      disp(sim.Out.SuppPos(end,1))
-                    %             nsteps = sim.Out.nSteps;
-                    passV(i) = 0.1*(sim.Out.SuppPos(end,1)/GA.xend>=1);
-                    % calculating distance for failed attempts, 0 if
-                    % success, 0.1*dist if failed
-%                     distV(i) = max(0.1*(sim.Out.SuppPos(end,1)/GA.xend<1)*(min(sim.Out.SuppPos(end,1)/GA.xend,1)),0);
-                    
-                    distV(i) = max((min(sim.Out.SuppPos(end,1)/GA.xend,1)),0);
+                    %                 distV = distV(find(passV==0));
+                    if isempty(distV)
+                        distV = 0;
+                    end
+                    %                 fit = sum(passV)+mean(distV);
+                    fit = difficulty+mean(distV);
+                    if (fit==1) && (difficulty==0)
+                        difficulty = 1;
+                    else
+                        difficulty = -1;
+                    end
                 end
-%                 distV = distV(find(passV==0));
-                if isempty(distV)
-                    distV = 0;
-                end
-%                 fit = sum(passV)+mean(distV);
-                fit = mean(distV);
-%                 tex = toc;
-%                 disp(['Robustness fitness = ' num2str(tex)]);
+                %                 tex = toc;
+                %                 disp(['Robustness fitness = ' num2str(tex)]);
             end
             out = [];
         end
-        
-        
         
         function [fit,out] = EigenFit(Sim)
             if isempty(Sim.Period)

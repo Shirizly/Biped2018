@@ -79,7 +79,7 @@ dpp = mkpp(t,repmat(pp.order-1:-1:1,pp.dim*pp.pieces,1).*pp.coefs(:,1:pp.order-1
 t = 0:0.001:xend;
 dyf = 180/pi*ppval(dpp,t);
 max(abs(dyf))
-flag = max(abs(dyf))>10 || flag;
+flag = max(abs(dyf))>40 || flag;
 end
 figure
 t = 0:0.001:xend;

@@ -328,6 +328,8 @@ switch whichCase
         % % Same structure as the 2N CPG
         % Final genome with tau_r + beta (constant tau_u/tau_v ratio) 
         % Include amp, offset, and duration of rectangular pulses for the PG
+        Mw = maxW;
+        mw = 0*Mw;
         
         nPA = 1;
         nPH = 1;

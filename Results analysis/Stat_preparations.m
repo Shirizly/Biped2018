@@ -5,8 +5,8 @@ clear all
 len = [1:10];
 mats = cell(1,length(len));
 for i = 1:length(len)
-    mats{i} = ['6N_tagaLike_2Ank_torques_symm_feedback_eq_09_21_' num2str(len(i)) '.mat'];
-%     mats{i} = ['ConSpitz_eq_09_21_' num2str(len(i)) '.mat'];
+%     mats{i} = ['6N_tagaLike_2Ank_torques_symm_feedback_eq_09_21_' num2str(len(i)) '.mat'];
+    mats{i} = ['ConSpitz_eq_09_21_' num2str(len(i)) '.mat'];
 %     mats{i} = ['2_level_CPG_eq_09_21_' num2str(len(i)) '.mat'];
 end
 if contains(mats{1},'tagaLike')

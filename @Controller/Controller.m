@@ -227,7 +227,7 @@ classdef Controller < handle & matlab.mixin.Copyable
         
         
         % %%%%%% % Derivative % %%%%%% %
-        function [Xdot] = Derivative(NC, ~, Xmod, X) % here MO stands for the controller
+        function [Xdot] = Derivative(NC, ~, Xmod, X) 
             phidot = NC.omega;
             
             % odd - flexor

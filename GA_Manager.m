@@ -1,9 +1,15 @@
 addpath(genpath('MOGA_runs_scripts_and_functions'),genpath('Aux functions in use'),genpath('Stochastic terrains'),genpath('Results analysis'),...
     genpath('results 0921'));
+% 
+% clear all
+% clc
 
-clear all
-clc
-
+%%
+if exist('GA','var')
+    %%
+GA = GA.Run();
+GA.Plot('Fit');
+end
 
 %% Comparison parameters:
 % Controller Structure Selection
@@ -43,7 +49,7 @@ for i=1:nStruct
     whichCPGv{i} = whichCPGp{CPGlist(i)};
 end
 
-FileName_date = ['09_21_'];
+FileName_date = ['11_15_'];
 
 failure = [];
 

@@ -152,6 +152,16 @@ else
 [GA.ppv,GA.dppv] = Sto_Ter_Array_Gen(GA.TerFileName,runcount,GA.nTerForSto,GA.TerVarS,GA.TerVarE,GA.nseg,GA.xend);
 end
 
+if exist([GA.TerFileName num2str(runcount+10) '.mat']) == 2
+    load([GA.TerFileName num2str(runcount+10) '.mat'],'ppv','dppv');
+    GA.ppv = [GA.ppv;ppv];
+    GA.dppv = [GA.dppv;dppv];
+else
+    [ppv2,dppv2] = Sto_Ter_Array_Gen(GA.TerFileName,runcount,GA.nTerForSto,GA.TerVarS+2,GA.TerVarE+2,GA.nseg,GA.xend);
+    GA.ppv = [GA.ppv;ppv2];
+    GA.dppv = [GA.dppv;dppv2];
+end
+
 GA.NFit = size(GA.FitIDs,2);
 GA.Sim.PMFull = 1; % Run poincare map on all coords
 
