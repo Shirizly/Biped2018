@@ -169,15 +169,15 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
 convcheck = 0;
-if wSim.Con.FBType == 1
+if wSim.Con.FBType == 3
     Sim_tic = tic;
     preSim = deepcopy(wSim);
-    preSim.Con.FBType = 2;
+    preSim.Con.FBType = 2;%2 for dt nominal
     preSim = preSim.Run();
     
     Sim_runTime = toc(Sim_tic);
     if ~isempty(preSim.Period)
-        wSim.Con.dtnom = preSim.Con.dtnom;
+        wSim.Con.dtnom = preSim.Con.dtnom; %for dtnominal
         Sim_tic = tic;
         wSim = wSim.Run();
         Sim_runTime = toc(Sim_tic);
@@ -186,15 +186,13 @@ if wSim.Con.FBType == 1
         wSim = preSim;
     end
 else
-
-
-
-% Run the simulation
-
-% save('wsim_from_runseq.mat','wSim');
-Sim_tic = tic;
-wSim = wSim.Run();
-Sim_runTime = toc(Sim_tic);
+    
+    % Run the simulation
+    
+    % save('wsim_from_runseq.mat','wSim');
+    Sim_tic = tic;
+    wSim = wSim.Run();
+    Sim_runTime = toc(Sim_tic);
 end
 
 

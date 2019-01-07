@@ -41,8 +41,8 @@ switch whichCase
         nAnkle2 = 1; % Number of ankle2 torques pulses
         nHip = 1;   % Number of hip torques
         % % Parameters:
-        maxAnkle = 20;   % Max ankle torque
-        maxHip = 20;    % Max hip torque
+        maxAnkle = 50;   % Max ankle torque
+        maxHip = 50;    % Max hip torque
         maxW = 5;
         minW = 0;
     otherwise
@@ -436,15 +436,17 @@ switch whichCase
         nPH = 2;
         nP = nPA+nPH;
         
-        Mamp = 20*ones(1,nP);
+        Mamp = max(maxHip,maxAnkle);
         mamp = -Mamp;
+        
+        
         MD = ones(1,2*nP);
         mD = 0*MD;
         
-        mPA = repmat([mamp(1),mD(1:2)],1,nPA);
-        MPA = repmat([Mamp(1),MD(1:2)],1,nPA);
-        mPH = repmat([mamp(1),mD(1:2)],1,nPH);
-        MPH = repmat([Mamp(1),MD(1:2)],1,nPH);
+        mPA = repmat([-maxAnkle,mD(1:2)],1,nPA);
+        MPA = repmat([maxAnkle,MD(1:2)],1,nPA);
+        mPH = repmat([-maxHip,mD(1:2)],1,nPH);
+        MPH = repmat([maxHip,MD(1:2)],1,nPH);
         
         N = 1;
         Keys = { 'omega',   'PulseAnk', 'PulseHip', 'IC_1_lvl';
@@ -462,21 +464,50 @@ switch whichCase
         nPH = 2;
         nP = nPA+nPH;
         
-        Mamp = 20*ones(1,nP);
+        Mamp = max(maxHip,maxAnkle);
         mamp = -Mamp;
         MD = ones(1,2*nP);
         mD = 0*MD;
         
-        Madap = [1,1,100,100];
+        Madap = [2,200];
         madap = -Madap;
         
-        mPA = repmat([mamp(1),mD(1:2)],1,nPA);
-        MPA = repmat([Mamp(1),MD(1:2)],1,nPA);
-        mPH = repmat([mamp(1),mD(1:2)],1,nPH);
-        MPH = repmat([Mamp(1),MD(1:2)],1,nPH);
+        mPA = repmat([-maxAnkle,mD(1:2)],1,nPA);
+        MPA = repmat([maxAnkle,MD(1:2)],1,nPA);
+        mPH = repmat([-maxHip,mD(1:2)],1,nPH);
+        MPH = repmat([maxHip,MD(1:2)],1,nPH);
         
         N = 1;
-        Keys = { 'omega',   'PulseAnk', 'PulseHip','k_adap', 'IC_1_lvl';
+        Keys = { 'omega',   'PulseAnk', 'PulseHip','k_adap2', 'IC_1_lvl';
+                      1        3*nPA,     3*nPH, 2,         0 };
+        Range = {   0.5          mPA,       mPH, madap; % Min
+                      2          MPA,       MPH, Madap}; % Max
+                  
+    case 'ConSpitz_eq_adaptation4'
+ 
+        % Include amp, offset, and duration of rectangular pulses for the PG
+        Mw = maxW;
+        mw = 0*Mw;
+   
+        nPA = 1;
+        nPH = 2;
+        nP = nPA+nPH;
+        
+        Mamp = max(maxHip,maxAnkle);
+        mamp = -Mamp;
+        MD = ones(1,2*nP);
+        mD = 0*MD;
+        
+        Madap = [2,200,2,200];
+        madap = -Madap;
+        
+        mPA = repmat([-maxAnkle,mD(1:2)],1,nPA);
+        MPA = repmat([maxAnkle,MD(1:2)],1,nPA);
+        mPH = repmat([-maxHip,mD(1:2)],1,nPH);
+        MPH = repmat([maxHip,MD(1:2)],1,nPH);
+        
+        N = 1;
+        Keys = { 'omega',   'PulseAnk', 'PulseHip','k_adap4', 'IC_1_lvl';
                       1        3*nPA,     3*nPH, 4,         0 };
         Range = {   0.5          mPA,       mPH, madap; % Min
                       2          MPA,       MPH, Madap}; % Max

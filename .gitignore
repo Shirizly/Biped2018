@@ -9,5 +9,6 @@ Graphs/
 *.fig
 *.asv
 *.mat
-MatsuokaGenome.mat/
+*.gif
 
+MatsuokaGenome.mat
