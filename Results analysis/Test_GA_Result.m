@@ -1,7 +1,11 @@
-addpath(genpath('Results analysis'));
-addpath(genpath('results 0921'));
+% addpath(genpath('Results analysis'));
+% addpath(genpath('results 0921'));
+%%
+% clear all
 
 %% Running the resulting controller of the GA process through a simulation
+% generate_GenomeFile('6N_tagaLike_2Ank_torques_symm_feedback_eq')
+generate_GenomeFile('ConSpitz_eq')
 
 % first load GA reult .mat
 seqs = GA.Seqs;
@@ -9,97 +13,84 @@ fits = GA.Fit;
 
 GAend = GA.Progress;
 
-% switch size(GA.Seqs,2)
-% %     case 10
-% %         start_pulses = 8; % for CPG
-% %         np = 2;  
-% %     case 19
-% %         start_pulses = 8; % for CPG2
-% %         np = 4;
-% %         
-% %     case 20
-% %         start_pulses = 9; % for CPG3
-% %         np = 4;
-% end
+%%
+% GAend = 1;
+np = 3;
+start_pulses = 2;
 
-% Taking the top controller for the i-st FF:
-ind = find(fits(:,6,GAend)==max(fits(:,6,GAend)));
+
+%% Taking the top controller for the i-st FF:
+% choose top fitness:
+ff = 1;
+
+ind = find(fits(:,ff,GAend)==max(fits(:,ff,GAend)));
 seq = seqs(ind,:,GAend)
 fit = fits(ind,:,GAend)
+% k_amp = seq(12);
 
+amp0 = seq(start_pulses:3:start_pulses+np*3-1).';
+
+start = seq(start_pulses+1:3:start_pulses+np*3).';
+
+stop = seq(start_pulses+2:3:start_pulses+np*3+1).';
 %%
-amp = seq(start_pulses:start_pulses+np-1).';
-
-start = seq(start_pulses+np:start_pulses+2*np-1).';
-
-stop = seq(start_pulses+np:start_pulses+2*np-1).'+seq(start_pulses+2*np:start_pulses+3*np-1).';
-
-pulses = [amp,start,stop]
-%% Taking the top controller for the second FF:
-seq = seqs(2,:,GAend)
-fit = fits(2,:,GAend)
-
-amp = seq(start_pulses:start_pulses+np-1).';
-
-start = seq(start_pulses+np:start_pulses+2*np-1).';
-
-stop = seq(start_pulses+np:start_pulses+2*np-1).'+seq(start_pulses+2*np:start_pulses+3*np-1).';
-
-pulses = [amp,start,stop]
-
-%% Taking a balance controller:
-nm = 3;
-seq = seqs(nm,:,GAend)
-fit = fits(nm,:,GAend)
-
-amp = seq(start_pulses:start_pulses+np-1).';
-
-start = seq(start_pulses+np:start_pulses+2*np-1).';
-
-stop = seq(start_pulses+np:start_pulses+2*np-1).'+seq(start_pulses+2*np:start_pulses+3*np-1).';
-
-pulses = [amp,start,stop]
-
-%% Graphing the pulses:
-
-phi = 0:0.0001:1;
-p = zeros(np,size(phi,2));
-on = ones(size(p));
-
-p(phi>=start) = on(phi>=start);
-p(phi>stop) = p(phi>stop)-on(phi>stop);
-pul = [[amp(1:np/2).' zeros(1,np/2)] * p;[zeros(1,np/2) amp(np/2+1:np).'] * p];
-
-figure
-hold on
-plot(phi,pul)
-title('torque pulses of the CPG controller')
-xlabel('Phase')
-ylabel('magnitude [NM]')
-legend('Ankle','Hip')
-grid on
-hold off
-
-
+slv = [5 0 -5]
+for i = 1:3
+% slope = slv(i);
+% 
+% amp = amp0 + slope*k_amp*[-1;1;1];
+% 
+% for j = 1:3
+%     amp(j) = min(max(amp(j),-50),50);
+% end
+% 
+% pulses = [amp,start,stop]
+% 
+% %% Graphing the pulses:
+% 
+% phi = 0:0.0001:1;
+% p = zeros(np,size(phi,2));
+% on = ones(size(p));
+% 
+% p(phi>=start) = on(phi>=start);
+% p(phi>stop) = p(phi>stop)-on(phi>stop);
+% switch np
+%     case 3
+%         pul = [[amp(1).' zeros(1,2)] * p;[zeros(1,1) amp(2:3).'] * p];
+%     case 4
+%         pul = [[amp(1:np/2).' zeros(1,np/2)] * p;[zeros(1,np/2) amp(np/2+1:np).'] * p];
+% end
+% figure
+% hold on
+% plot(phi,pul,'lineWidth',4)
+% title(['Torque pulses of the CPG controller, slope = ' num2str(slope)])
+% xlabel('Phase')
+% ylabel('Magnitude [NM]')
+% legend('Ankle','Hip')
+% grid on
+% hold off
+% 
+end
 %% The simulation
 
-ter_type = 1;
+ter_type = 2;
 
 % sim = tryToWalk4(seq,ter_type);
-sim = tryToWalkMatsuoka(seq,ter_type);
+% sim = tryToWalkMatsuoka(seq,ter_type);
+ter = 1
+% filename = 'rec2level3.gif';
+% sim = tryToWalk4(seq,ter_type,ppv{ter},dppv{ter},filename);
+% sim = tryToWalkMatsuoka(seq,ter_type,ppv{ter},dppv{ter},filename);
 
-% ter = 5
-% sim = tryToWalk2(seq,ter_type,ppv{ter},dppv{ter},whichCPG);
+ter_type = 1;
+% filename = 'rec2levelslow.gif';
+% sim = tryToWalk4(seq,ter_type);
+% sim = tryToWalkMatsuoka(seq,ter_type,1,filename);
+%% Stick figure plot:
+filename = [];
+Dur = 10;
+timestep = 0.01;
+geneNum = GAend;
+GenID = ind;
+CBstick_Figure_plot(GA,geneNum, GenID, Dur, timestep, filename)
 
-
-%% The simulation
-
-
-sim = tryToWalk3(sim);
-
-
-
-% %% low ankle torque:
-% ind = find(seqs(:,4,end)<0.01);
-% 
-% ind2 = find(fits(ind,5

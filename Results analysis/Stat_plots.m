@@ -26,45 +26,293 @@ mats = {'Stat_09_21_21.mat',...
     'Stat_09_21_22.mat',...
     'Stat_09_21_23.mat'};
 
-mats = {'Stat_09_21_21.mat',...
-    'Stat_09_21_22.mat'};
+mats = {'Stat_09_21_51.mat',...
+    'Stat_09_21_52.mat'};
 n = max(size(mats,2),size(mats,1));
 col = {'r','b','k','g','c'};
 colind = [1,0,0;0,0,1;0,0,0];
 alpgen = 0.05;
 
 %%
+% alp = alpgen;
+% leg = [];
+% figure
+% hold on
+% for i = 1:numel(mats)
+%     load(mats{i})
+%     for j=1:numel(Experts)
+%         ExpertVel{i}(j,:) = Experts{j}(:,1).';
+%         ExpertVel{i}(j,:) = max(ExpertVel{i}(j,:)-1,0);
+% 
+%     end
+%     x = 1:size(ExpertVel{i},2);
+%     bootfun = @(x)(mean(x));
+%     y = mean(ExpertVel{i});
+%     expmean(i,:) = y;
+% %     bootfun = @(x)(median(x));
+% 
+%     erbr = bootci(1000,{bootfun,ExpertVel{i}},'alpha',0.05);
+%     pl(i) = errorbar(x,y,y-erbr(1,:),erbr(2,:)-y,'Color',col{i},'LineWidth',2);
+%     leg{i} = CPGName;
+%     
+% end
+% 
+% 
+% for j = size(ExpertVel{i},2):-1:1
+%     maxval = max(expmean(:,j));
+%     maxind = find(expmean(:,j)==maxval);
+%     range = [1:maxind-1 maxind+1:numel(mats)];
+%     secbestval = max(expmean(range,j));
+%     secbestind = find(expmean(:,j)==secbestval);
+%     [p(j),h(j)] = ranksum(ExpertVel{maxind}(:,j),ExpertVel{secbestind}(:,j),'tail','right','alpha',alp);
+%     colv = [1,1,1];
+%     if h(j) == 1
+%         colv = colind(maxind,:);
+%     end
+%     if colv == [1,1,1]
+%         pl(end+1) = plot(j,-0,'o','MarkerSize',10,'MarkerEdgeColor','k');
+%     else
+%         pl(end+1) = plot(j,-0,'o','MarkerFaceColor',colv,'MarkerSize',10,'MarkerEdgeColor','k');
+%     end
+% end
+% 
+% 
+% 
+% leg{n+1}= ['RankSumTest - ' num2str((1-alp)*100) '%'];
+% 
+% 
+% legend(leg,'location','best','fontSize',12,'FontWeight','bold')
+% xlabel('Generation','FontName','Garamond','FontWeight','bold','fontSize',18)
+% ylabel('Velocity FF','FontName','Garamond','FontWeight','bold','fontSize',18)
+% title('Velocity Experts GA progression','FontName','Garamond','FontWeight','bold','fontSize',22)
+% grid on
+% 
+% 
+% hold off
+% 
+% 
+% 
+% 
+% %%
+% alp = alpgen;
+% leg = [];
+% figure
+% hold on
+% for i = 1:numel(mats)
+%     load(mats{i})
+%     for j=1:numel(Experts)
+%         ExpertSto{i}(j,:) = Experts{j}(:,2).';
+% 
+%     end
+%     x = 1:size(ExpertSto{i},2);
+%     bootfun = @(x)(mean(x));
+%     y = median(ExpertSto{i});
+%     expmean(i,:) = y;
+% %     bootfun = @(x)(median(x));
+% 
+%     erbr = bootci(1000,{bootfun,ExpertSto{i}},'alpha',alp);
+%     pl(i) = errorbar(x,y,y-erbr(1,:),erbr(2,:)-y,'Color',col{i},'LineWidth',2);
+%     leg{i} = CPGName;
+%     
+% end
+% 
+% for j = size(ExpertSto{1},2):-1:1
+%     maxval = max(expmean(:,j));
+%     maxind = find(expmean(:,j)==maxval);
+%     range = [1:maxind-1 maxind+1:numel(mats)];
+%     secbestval = max(expmean(range,j));
+%     secbestind = find(expmean(:,j)==secbestval);
+%     [p(j),h(j)] = ranksum(ExpertSto{maxind}(:,j),ExpertSto{secbestind}(:,j),'tail','right','alpha',alp);
+%     colv = [1,1,1];
+%     if h(j) == 1
+%         colv = colind(maxind,:);
+%     end
+%     if colv == [1,1,1]
+%         pl(end+1) = plot(j,-0,'o','MarkerSize',10,'MarkerEdgeColor','k');
+%     else
+%         pl(end+1) = plot(j,-0,'o','MarkerFaceColor',colv,'MarkerSize',10,'MarkerEdgeColor','k');
+%     end
+% 
+% end
+% 
+% 
+% 
+% 
+% 
+% leg{n+1}= ['SignRankTest - ' num2str((1-alp)*100) '%'];
+% % axis([0 20 0 1])
+% legend(leg,'location','best','fontSize',12,'FontWeight','bold')
+% xlabel('Generation','FontName','Garamond','FontWeight','bold','fontSize',18)
+% ylabel('Stochastic FF','FontName','Garamond','FontWeight','bold','fontSize',18)
+% title('Rough Terrain Experts GA progression','FontName','Garamond','FontWeight','bold','fontSize',22)
+% grid on
+% 
+% 
+% hold off
+% 
+% 
+% %%
+% alp = alpgen;
+% leg = [];
+% figure
+% hold on
+% for i = 1:numel(mats)
+%     load(mats{i})
+%     for j=1:numel(Experts)
+%         ExpertUDH{i}(j,:) = Experts{j}(:,3).';
+% 
+%     end
+%     x = 1:size(ExpertUDH{i},2);
+%     bootfun = @(x)(mean(x));
+%     y = median(ExpertUDH{i});
+%     expmean(i,:) = y;
+% %     bootfun = @(x)(median(x));
+% 
+%     erbr = bootci(1000,{bootfun,ExpertUDH{i}},'alpha',0.05);
+%     pl(i) = errorbar(x,y,y-erbr(1,:),erbr(2,:)-y,'Color',col{i},'LineWidth',2);
+%     leg{i} = CPGName;
+%     
+% end
+% 
+% for j = 1:size(ExpertUDH{i},2)
+%     maxval = max(expmean(:,j));
+%     maxind = find(expmean(:,j)==maxval);
+%     range = [1:maxind-1 maxind+1:numel(mats)];
+%     secbestval = max(expmean(range,j));
+%     secbestind = find(expmean(:,j)==secbestval);
+%     [p(j),h(j)] = ranksum(ExpertUDH{maxind}(:,j),ExpertUDH{secbestind}(:,j),'tail','right','alpha',0.01);
+%     colv = [1,1,1];
+%     if h(j) == 1
+%         colv = colind(maxind,:);
+%     end
+%     if colv == [1,1,1]
+%         pl(end+1) = plot(j,-0,'o','MarkerSize',10,'MarkerEdgeColor','k');
+%     else
+%         pl(end+1) = plot(j,-0,'o','MarkerFaceColor',colv,'MarkerSize',10,'MarkerEdgeColor','k');
+%     end
+% end
+% 
+% leg{n+1}= ['RankSumTest - ' num2str((1-alp)*100) '%'];
+% 
+% 
+% legend(leg,'location','best','fontSize',12,'FontWeight','bold')
+% xlabel('Generation','FontName','Garamond','FontWeight','bold','fontSize',18)
+% ylabel('Slope Robustness FF','FontName','Garamond','FontWeight','bold','fontSize',18)
+% title('Slope Robustness Experts GA progression','FontName','Garamond','FontWeight','bold','fontSize',22)
+% 
+% grid on
+% hold off
+
+%%
+%% areas under front
+% areaname = {'Robustness-Slopes','Velocity-Slopes','Velocity-Robustness'};
+% for k = 1:3
+%     alp = alpgen;
+%     leg = [];
+%     f{k} = figure
+%     hold on
+%     for i = 1:numel(mats)
+%         load(mats{i})
+%         Areat = Areas{k};
+%         for j=1:numel(Areat)
+%             Ar{i}(j,:) = Areat{j}(:).';
+%             fover=find(Ar{i}(j,:)>1);
+%             if ~isempty(fover)
+%                 fover
+%             end
+%         end
+%         x = 1:size(Ar{i},2);
+%         bootfun = @(x)(mean(x));
+%         y = mean(Ar{i});
+%         Armean(i,:) = y;
+%         %     bootfun = @(x)(median(x));
+%         
+%         erbr = bootci(1000,{bootfun,Ar{i}},'alpha',0.05);
+%         pl(i) = errorbar(x,y,y-erbr(1,:),erbr(2,:)-y,'Color',col{i},'LineWidth',2);
+%         leg{i} = CPGName;
+%         
+%     end
+%     
+%     for j = 1:size(Ar{i},2)
+%         if all(Armean(:,j)==0)
+%             pl(end+1) = plot(j,-0,'o','MarkerSize',10,'MarkerEdgeColor','k');
+%         else
+%             maxval = max(Armean(:,j));
+%             maxind = find(Armean(:,j)==maxval);
+%             range = [1:maxind-1 maxind+1:numel(mats)];
+%             secbestval = max(Armean(range,j));
+%             secbestind = find(Armean(:,j)==secbestval);
+%             [p(j),h(j)] = signrank(Ar{maxind}(:,j),Ar{secbestind}(:,j),'tail','right','alpha',0.05);
+%             colv = [1,1,1];
+%             if h(j) == 1
+%                 colv = colind(maxind,:);
+%             end
+%             if colv == [1,1,1]
+%                 pl(end+1) = plot(j,-0,'o','MarkerSize',10,'MarkerEdgeColor','k');
+%             else
+%                 pl(end+1) = plot(j,-0,'o','MarkerFaceColor',colv,'MarkerSize',10,'MarkerEdgeColor','k');
+%             end
+%         end
+%     end
+%     
+%     leg{n+1}= ['SignRankTest - ' num2str((1-alp)*100) '%'];
+%     
+%     
+%     legend(leg,'location','best','fontSize',12,'FontWeight','bold')
+%     xlabel('Generation','fontSize',18,'FontName','Garamond','FontWeight','bold')
+%     ylabel('Area under 1st Front','FontName','Garamond','fontSize',18,'FontWeight','bold')
+%     title(['Area under 1st Front - ',areaname{k}],'FontName','Garamond','fontSize',22,'FontWeight','bold')
+%     
+%     grid on
+%     hold off
+% end
+
+%%
+if 0
+    exten = ['.bmp'];
+    % file_ext = ['.fig'];
+    prefix = ['AA_areas_'];
+    name{1} = ['1'];
+    name{2} = ['2'];
+    name{3} = ['3'];
+    suffix = [];
+    
+    for i=1:3
+        saveas(f{i},[prefix name{i} suffix exten])
+    end
+end
+%%
+
+%%
 alp = alpgen;
 leg = [];
-figure
+clear f
+f{1} = figure
 hold on
 for i = 1:numel(mats)
     load(mats{i})
-    for j=1:numel(Experts)
-        ExpertVel{i}(j,:) = Experts{j}(:,1).';
-        ExpertVel{i}(j,:) = max(ExpertVel{i}(j,:)-1,0);
-
+    for j=1:numel(fcountchild)
+        fc{i}(j,:) = fcountchild{j}(:).';
     end
-    x = 1:size(ExpertVel{i},2);
+    x = 1:size(fc{i},2);
     bootfun = @(x)(mean(x));
-    y = mean(ExpertVel{i});
+    y = mean(fc{i});
     expmean(i,:) = y;
 %     bootfun = @(x)(median(x));
 
-    erbr = bootci(1000,{bootfun,ExpertVel{i}},'alpha',0.05);
+    erbr = bootci(1000,{bootfun,fc{i}},'alpha',0.05);
     pl(i) = errorbar(x,y,y-erbr(1,:),erbr(2,:)-y,'Color',col{i},'LineWidth',2);
     leg{i} = CPGName;
     
 end
 
-
-for j = size(ExpertVel{i},2):-1:1
+for j = 1:size(fc{i},2)
     maxval = max(expmean(:,j));
     maxind = find(expmean(:,j)==maxval);
     range = [1:maxind-1 maxind+1:numel(mats)];
     secbestval = max(expmean(range,j));
     secbestind = find(expmean(:,j)==secbestval);
-    [p(j),h(j)] = ranksum(ExpertVel{maxind}(:,j),ExpertVel{secbestind}(:,j),'tail','right','alpha',alp);
+    [p(j),h(j)] = ranksum(fc{maxind}(:,j),fc{secbestind}(:,j),'tail','right','alpha',0.01);
     colv = [1,1,1];
     if h(j) == 1
         colv = colind(maxind,:);
@@ -75,112 +323,48 @@ for j = size(ExpertVel{i},2):-1:1
         pl(end+1) = plot(j,-0,'o','MarkerFaceColor',colv,'MarkerSize',10,'MarkerEdgeColor','k');
     end
 end
-
-
 
 leg{n+1}= ['RankSumTest - ' num2str((1-alp)*100) '%'];
 
 
 legend(leg,'location','best','fontSize',12,'FontWeight','bold')
 xlabel('Generation','FontName','Garamond','FontWeight','bold','fontSize',18)
-ylabel('Velocity FF','FontName','Garamond','FontWeight','bold','fontSize',18)
-title('Velocity Experts GA progression','FontName','Garamond','FontWeight','bold','fontSize',22)
+ylabel('Feasibility rate','FontName','Garamond','FontWeight','bold','fontSize',18)
+title('Feasiblity rate over Children','FontName','Garamond','FontWeight','bold','fontSize',22)
+
 grid on
-
-
 hold off
-
-
-
 
 %%
 alp = alpgen;
 leg = [];
-figure
+
+f{2} = figure
 hold on
 for i = 1:numel(mats)
     load(mats{i})
-    for j=1:numel(Experts)
-        ExpertSto{i}(j,:) = Experts{j}(:,2).';
-
+    for j=1:numel(fcountmute)
+        fc{i}(j,:) = fcountmute{j}(:).';
     end
-    x = 1:size(ExpertSto{i},2);
+    x = 1:size(fc{i},2);
     bootfun = @(x)(mean(x));
-    y = median(ExpertSto{i});
+    y = mean(fc{i});
     expmean(i,:) = y;
 %     bootfun = @(x)(median(x));
 
-    erbr = bootci(1000,{bootfun,ExpertSto{i}},'alpha',alp);
+    erbr = bootci(1000,{bootfun,fc{i}},'alpha',0.05);
     pl(i) = errorbar(x,y,y-erbr(1,:),erbr(2,:)-y,'Color',col{i},'LineWidth',2);
     leg{i} = CPGName;
     
 end
 
-for j = size(ExpertSto{1},2):-1:1
+for j = 1:size(fc{i},2)
     maxval = max(expmean(:,j));
     maxind = find(expmean(:,j)==maxval);
     range = [1:maxind-1 maxind+1:numel(mats)];
     secbestval = max(expmean(range,j));
     secbestind = find(expmean(:,j)==secbestval);
-    [p(j),h(j)] = ranksum(ExpertSto{maxind}(:,j),ExpertSto{secbestind}(:,j),'tail','right','alpha',alp);
-    colv = [1,1,1];
-    if h(j) == 1
-        colv = colind(maxind,:);
-    end
-    if colv == [1,1,1]
-        pl(end+1) = plot(j,-0,'o','MarkerSize',10,'MarkerEdgeColor','k');
-    else
-        pl(end+1) = plot(j,-0,'o','MarkerFaceColor',colv,'MarkerSize',10,'MarkerEdgeColor','k');
-    end
-
-end
-
-
-
-
-
-leg{n+1}= ['SignRankTest - ' num2str((1-alp)*100) '%'];
-axis([0 20 0 1])
-legend(leg,'location','best','fontSize',12,'FontWeight','bold')
-xlabel('Generation','FontName','Garamond','FontWeight','bold','fontSize',18)
-ylabel('Stochastic FF','FontName','Garamond','FontWeight','bold','fontSize',18)
-title('Rough Terrain Experts GA progression','FontName','Garamond','FontWeight','bold','fontSize',22)
-grid on
-
-
-hold off
-
-
-%%
-alp = alpgen;
-leg = [];
-figure
-hold on
-for i = 1:numel(mats)
-    load(mats{i})
-    for j=1:numel(Experts)
-        ExpertUDH{i}(j,:) = Experts{j}(:,3).';
-
-    end
-    x = 1:size(ExpertUDH{i},2);
-    bootfun = @(x)(mean(x));
-    y = median(ExpertUDH{i});
-    expmean(i,:) = y;
-%     bootfun = @(x)(median(x));
-
-    erbr = bootci(1000,{bootfun,ExpertUDH{i}},'alpha',0.05);
-    pl(i) = errorbar(x,y,y-erbr(1,:),erbr(2,:)-y,'Color',col{i},'LineWidth',2);
-    leg{i} = CPGName;
-    
-end
-
-for j = 1:size(ExpertUDH{i},2)
-    maxval = max(expmean(:,j));
-    maxind = find(expmean(:,j)==maxval);
-    range = [1:maxind-1 maxind+1:numel(mats)];
-    secbestval = max(expmean(range,j));
-    secbestind = find(expmean(:,j)==secbestval);
-    [p(j),h(j)] = ranksum(ExpertUDH{maxind}(:,j),ExpertUDH{secbestind}(:,j),'tail','right','alpha',0.01);
+    [p(j),h(j)] = ranksum(fc{maxind}(:,j),fc{secbestind}(:,j),'tail','right','alpha',0.01);
     colv = [1,1,1];
     if h(j) == 1
         colv = colind(maxind,:);
@@ -197,64 +381,21 @@ leg{n+1}= ['RankSumTest - ' num2str((1-alp)*100) '%'];
 
 legend(leg,'location','best','fontSize',12,'FontWeight','bold')
 xlabel('Generation','FontName','Garamond','FontWeight','bold','fontSize',18)
-ylabel('Slope Robustness FF','FontName','Garamond','FontWeight','bold','fontSize',18)
-title('Slope Robustness Experts GA progression','FontName','Garamond','FontWeight','bold','fontSize',22)
+ylabel('Feasibility rate','FontName','Garamond','FontWeight','bold','fontSize',18)
+title('Feasiblity rate over Mutants','FontName','Garamond','FontWeight','bold','fontSize',22)
 
 grid on
 hold off
-
 %%
-alp = alpgen;
-leg = [];
-figure
-hold on
-for i = 1:numel(mats)
-    load(mats{i})
-    for j=1:numel(Areas)
-        Ar{i}(j,:) = Areas{j}(:).';
-
-    end
-    x = 1:size(Ar{i},2);
-    bootfun = @(x)(mean(x));
-    y = median(Ar{i});
-    Armean(i,:) = y;
-%     bootfun = @(x)(median(x));
-
-    erbr = bootci(1000,{bootfun,Ar{i}},'alpha',0.05);
-    pl(i) = errorbar(x,y,y-erbr(1,:),erbr(2,:)-y,'Color',col{i},'LineWidth',2);
-    leg{i} = CPGName;
+if 1
+    exten = ['.bmp'];
+    % file_ext = ['.fig'];
+    prefix = ['AA_feasibility_'];
+    name{1} = ['child'];
+    name{2} = ['mutants'];
+    suffix = [];
     
-end
-
-for j = 1:size(Ar{i},2)
-    if all(Armean(:,j)==0)
-        pl(end+1) = plot(j,-0,'o','MarkerSize',10,'MarkerEdgeColor','k');
-    else
-        maxval = max(Armean(:,j));
-        maxind = find(Armean(:,j)==maxval);
-        range = [1:maxind-1 maxind+1:numel(mats)];
-        secbestval = max(Armean(range,j));
-        secbestind = find(Armean(:,j)==secbestval);
-        [p(j),h(j)] = signrank(Ar{maxind}(:,j),Ar{secbestind}(:,j),'tail','right','alpha',0.05);
-        colv = [1,1,1];
-        if h(j) == 1
-            colv = colind(maxind,:);
-        end
-        if colv == [1,1,1]
-            pl(end+1) = plot(j,-0,'o','MarkerSize',10,'MarkerEdgeColor','k');
-        else
-            pl(end+1) = plot(j,-0,'o','MarkerFaceColor',colv,'MarkerSize',10,'MarkerEdgeColor','k');
-        end
+    for i=1:2
+        saveas(f{i},[prefix name{i} suffix exten])
     end
 end
-
-leg{n+1}= ['SignRankTest - ' num2str((1-alp)*100) '%'];
-
-
-legend(leg,'location','best','fontSize',12,'FontWeight','bold')
-xlabel('Generation','fontSize',18,'FontName','Garamond','FontWeight','bold')
-ylabel('Area under 1st Front','FontName','Garamond','fontSize',18,'FontWeight','bold')
-title('Area under 1st Front GA progression','FontName','Garamond','fontSize',22,'FontWeight','bold')
-
-grid on
-hold off

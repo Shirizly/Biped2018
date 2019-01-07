@@ -37,7 +37,7 @@ function ParGra(nI,nD,nJ) %#ok<INUSL>
         end
     end
     Data = abs(Data)/max(max(abs(Data)));
-
+    
     
     
     % Plot sample data before running algorithm
@@ -50,7 +50,12 @@ function ParGra(nI,nD,nJ) %#ok<INUSL>
     % Give unique ID to each sample
     Data = [Data (1:size(Data,1))'];
 
-
+figure
+plot(Data(:,1),Data(:,2),'o','lineWidth',2,'markerSize',6,'Color',[0.02;0.01;1])
+title('Population of generation i','fontSize',20,'Interpreter','Latex')
+xlabel('1st Fitness Function','fontSize',16,'Interpreter','Latex')
+ylabel('2nd Fitness Function','fontSize',16,'Interpreter','Latex')
+grid on
 
 % Round off to 3 decimal places
 % x = round(x*1000)/1000;
@@ -118,7 +123,7 @@ end
 
 
     % Run sample code
-    close all
+%     close all
     N=length(Fronts)
 
     figure()

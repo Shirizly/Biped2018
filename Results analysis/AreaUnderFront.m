@@ -13,15 +13,15 @@ function A = AreaUnderFront(Fit,varargin)
 %     0.9 1.3;...
 %     0.98 1.1];
 
-Scale = [1 12];
+% Scale = [1 12];
 
 % if nargin<2
 %     Scale = max(Fit);
 % else
 %     Scale = varargin{1};
 % end
-normalv = repmat(Scale,size(Fit,1),1);
-NFit = Fit./normalv;
+% normalv = repmat(Scale,size(Fit,1),1);
+NFit = Fit;%./normalv;
 NFit = sortrows(NFit);
 
 
@@ -37,7 +37,7 @@ else
     end
     
     Mf1 = max(NFit(:,1));
-    
+    Mf2 = max(NFit(:,2));
     
     
     X = NFit(:,1);
@@ -49,6 +49,7 @@ else
     %         plot(X,Y)
     
         A = integrate(f1,Mf1,0);
+        A = A/(Mf1*Mf2);
     catch err
         blip = 1;
     end

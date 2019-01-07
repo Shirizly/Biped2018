@@ -70,7 +70,7 @@ classdef ConSpitz < handle & matlab.mixin.Copyable
          startup_c;
          omega_c;
         % Phase reset
-         ExtP_reset = []; % set to a certain phase to use phase reset
+         ExtP_reset = 0; % set to a certain phase to use phase reset
                          % on foot contact
                          
         % Angular velocity impulses
@@ -196,14 +196,13 @@ classdef ConSpitz < handle & matlab.mixin.Copyable
                     % NO FEEDBACK
                 case 1
                     % Apply higher-level adaptation:
-                    P0 = [NC.tau0;0];
+                    P0 = [NC.omega0;0];
                     t1 = X(1);
                     t2 = X(2);
                     FB = [(t1+t2)/2;(t1-t2)-NC.dtnom]; % FB is: slope's angle, difference in relative angle between the legs (compared to nominal)
                     P = P0+NC.k_a*FB;
-                    NC.tau = max(P(1),0.02);
-                    NC.tav = NC.tau_ratio*NC.tau;
-                    NC.Amp = min(NC.Amp0+P(2)*ones(size(NC.Amp0)),20);
+                    NC.omega = max(P(1),0.02);
+                    NC.Amp = NC.Amp0+P(2)*ones(size(NC.Amp0));
                 case 2 % learning the nominal delta-theta for the adaptation
                     dt = X(1)-X(2);
                     NC.dtconv = abs(NC.dtnom - dt);

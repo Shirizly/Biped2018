@@ -1,32 +1,32 @@
 addpath(genpath('MOGA_runs_scripts_and_functions'),genpath('Aux functions in use'),genpath('Stochastic terrains'),genpath('Results analysis'),...
     genpath('results 0921'));
-% 
-% clear all
+%
+clear all
 % clc
 
 %%
 if exist('GA','var')
     %%
-GA = GA.Run();
-GA.Plot('Fit');
+    GA = GA.Run();
+    GA.Plot('Fit');
 end
 
 %% Comparison parameters:
 % Controller Structure Selection
-whichCPGp{1} = '6N_tagaLike_2Ank_torques_symm_feedback_eq'; 
+whichCPGp{1} = '6N_tagaLike_2Ank_torques_symm_feedback_eq';
 whichCPGp{2} = 'ConSpitz';
 whichCPGp{3} = 'ConSpitz_eq';
 whichCPGp{4} = '2_level_CPG';
 whichCPGp{5} = '2_level_CPG_eq';
 
 CPGlist = [3];
-adaptation = 0;
+adaptation = 1;
 
 % Number of GA runs:
 nRuns = 10;
 
 % Evulotionary parameters:
-MoogaGen = 20;
+MoogaGen = 10;
 MoogaPop = 1000;
 
 % Stochastic terrain parameters:
@@ -49,7 +49,7 @@ for i=1:nStruct
     whichCPGv{i} = whichCPGp{CPGlist(i)};
 end
 
-FileName_date = ['11_15_'];
+FileName_date = ['11_29_'];
 
 failure = [];
 
@@ -59,38 +59,40 @@ for j = 1:nStruct
     whichCPG = whichCPGv{j}
     if adaptation == 1
         whichCPG = [whichCPG '_adaptation'];
-        FileIn = [whichCPGv{j} '_09_21_' num2str(i) '.mat'];
-    else
-        FileIn = [];
     end
     generate_GenomeFile(whichCPG); % this functions holds definitions for the genetic sequenceFileName_prefix = 'AS_';
     FileName_start = [whichCPG,'_'];
     try
-    for i = 1:nRuns
-%     for i=1:nRuns  % running every method several times for stastistical analysis
-        GA = MOOGA(MoogaGen,MoogaPop); % (generations,population size)
-        FileName_extra1 = [num2str(i)];
-        FileName_extra2 = [];
-        GA.FileOut = [FileName_start,FileName_date,...
-            FileName_extra1,FileName_extra2,'.mat'];
-        GA.FileIn = FileIn;
-        
-        % Stochastic terrain setup
-        GA.TerVarS = TerVarS;
-        GA.TerVarE = TerVarE;
-        GA.nseg = nseg;
-        GA.xend = xend;
-        GA.nTerForSto = nTerForSto;
-        GA.TerFileName = TerFileName;
-%         if j == 1
-%             GA = GA.SetFittest(15,60,5);
-%         else
-%             GA = GA.SetFittest(15,15,5);
-%         end
-        
-        %run
-        MOGA_Run(GA,whichCPG,whichGA_Case,i)
-    end
+        for i = 2:nRuns
+            if adaptation == 1
+                FileIn = [whichCPGv{j} '_11_15_' num2str(i) '.mat'];
+            else
+                FileIn = [];
+            end
+            %     for i=1:nRuns  % running every method several times for stastistical analysis
+            GA = MOOGA(MoogaGen,MoogaPop); % (generations,population size)
+            FileName_extra1 = [num2str(i)];
+            FileName_extra2 = [];
+            GA.FileOut = [FileName_start,FileName_date,...
+                FileName_extra1,FileName_extra2,'.mat'];
+            GA.FileIn = FileIn;
+            
+            % Stochastic terrain setup
+            GA.TerVarS = TerVarS;
+            GA.TerVarE = TerVarE;
+            GA.nseg = nseg;
+            GA.xend = xend;
+            GA.nTerForSto = nTerForSto;
+            GA.TerFileName = TerFileName;
+            %         if j == 1
+            %             GA = GA.SetFittest(15,60,5);
+            %         else
+            %             GA = GA.SetFittest(15,15,5);
+            %         end
+            
+            %run
+            MOGA_Run(GA,whichCPG,whichGA_Case,i)
+        end
     catch err
         failure{end+1} = err;
         disp(err);

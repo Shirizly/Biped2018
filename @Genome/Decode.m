@@ -132,6 +132,7 @@ for k = 1:size(Ge.Keys,2)
             end
         case 'omega'
             Sim.Con.omega = Seq(SeqPos);
+            Sim.Con.omega0 = Seq(SeqPos);
         case 'IC_2_lvl'
             % When this key shows up in a genome, it tells the decoder to
             % set the simulation's initial condition to a value that aids

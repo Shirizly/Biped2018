@@ -14,9 +14,9 @@ Dur = 20;
     
     
     % Animation properties
-    FPS = 25;
-    Background = [0 0 0]; % black
-    % Background = [1 1 1]; % white
+    FPS = 60;
+%     Background = [0 0 0]; % black
+    Background = [1 1 1]; % white
 
     % Render handles
     AnFig = 0; tCOM = 0; COMx0 = 0; COMy0 = 0;
@@ -35,21 +35,52 @@ Dur = 20;
             Sim.Con.MinSat = [-maxAnkle,-maxHip];
             Sim.Con.MaxSat = [ maxAnkle, maxHip];
             Sim.Con.stDim = 1;
-            Sim.Con.FAM = 'ConSpitz';
         case 3
-            Sim = varargin{1};
+            if ter_type==3
+                Sim = Simulation();
+                nsim = 1;
+                Sim.Con = ConSpitz;
+                Sim.Con.MinSat = [-maxAnkle,-maxHip];
+                Sim.Con.MaxSat = [ maxAnkle, maxHip];
+                Sim.Con.stDim = 1;
+                start_slope = varargin{1};
+            else
+                Sim = varargin{1};
+            end
+        case 4
+            if ter_type==2
+                Sim = Simulation();
+                nsim = 1;
+                Sim.Con = ConSpitz;
+                Sim.Con.MinSat = [-maxAnkle,-maxHip];
+                Sim.Con.MaxSat = [ maxAnkle, maxHip];
+                Sim.Con.stDim = 1;
+                pp = varargin{1};
+                dpp = varargin{2};
+            else
+                if ter_type==3
+                    Sim = Simulation();
+                    nsim = 1;
+                    Sim.Con = ConSpitz;
+                    Sim.Con.MinSat = [-maxAnkle,-maxHip];
+                    Sim.Con.MaxSat = [ maxAnkle, maxHip];
+                    Sim.Con.stDim = 1;
+                    start_slope = varargin{1};
+                    filename = varargin{2};
+                end
+            end
         case 5
-            Sim = Simulation();
-            nsim = 1;
-            pp = varargin{1};
-            dpp = varargin{2};
-            whichCPG = varargin{3};
-         
-        case 6
-            Sim = varargin{3};
-            pp = varargin{1};
-            dpp = varargin{2};
-            whichCPG = varargin{4};
+            if ter_type==2
+                Sim = Simulation();
+                nsim = 1;
+                Sim.Con = ConSpitz;
+                Sim.Con.MinSat = [-maxAnkle,-maxHip];
+                Sim.Con.MaxSat = [ maxAnkle, maxHip];
+                Sim.Con.stDim = 1;
+                pp = varargin{1};
+                dpp = varargin{2};
+                filename = varargin{3};
+            end
     end
     
     if isnumeric(Dur)
@@ -82,14 +113,16 @@ Dur = 20;
         
         switch ter_type
             case 1
-                Sim.Env = Sim.Env.Set('Type','inc','start_slope',start_slope);
+                Sim.Env = Sim.Env.Set('Type','inc','start_slope',0);
             case 2
                 Sim.Env = Sim.Env.Set('Type',7,'pp',pp,'dpp',dpp);
+            case 3
+                Sim.Env = Sim.Env.Set('Type','inc','start_slope',start_slope);
         end
         
         
         
-        Sim.IC = [start_slope, start_slope, 0, 0, zeros(1, Sim.Con.stDim)];
+        Sim.IC = [0, 0, 0, 0, zeros(1, Sim.Con.stDim)];
         
         % decode the controller
         Sim = Gen.Decode(Sim, seq);
@@ -117,13 +150,10 @@ Dur = 20;
     T = Sim.Out.T;
     X = Sim.Out.X;
     Pos = Sim.Out.SuppPos;
-    
-    dist = Pos(end,1)
     Doubles = find(diff(T)==0);
     T(Doubles) = [];
     X(Doubles,:) = [];
     Pos(Doubles,:) = [];
-
     % Render animation in realtime
     NPanels = floor(FPS*T(end));
     dt = T(end)/NPanels;
@@ -139,7 +169,7 @@ Dur = 20;
 
     OldX = X(1,:);
 
-    if 0 % ~isempty(filename)
+    if ~isempty(filename)
         for p = 1:NPanels+1
             t = dt*(p-1);
 
@@ -183,11 +213,11 @@ Dur = 20;
         %     BackgroundDiff = sum(cm-repmat(Background,size(cm,1),1),2);
         %     BackgroundID = find(BackgroundDiff == min(BackgroundDiff),1,'first')-1;
             if p == 1
-                imwrite(imind,cm,filename,'gif','DelayTime',dt,'Loopcount',inf);
+                imwrite(imind,cm,filename,'gif','DelayTime',dt*3,'Loopcount',inf);
         %         imwrite(imind,cm,filename,'gif','DelayTime',dt,...
         %             'Loopcount',inf,'TransparentColor',BackgroundID);
             else
-                imwrite(imind,cm,filename,'gif','DelayTime',dt,'WriteMode','append');
+                imwrite(imind,cm,filename,'gif','DelayTime',dt*3,'WriteMode','append');
         %         imwrite(imind,cm,filename,'gif','DelayTime',dt,...
         %             'WriteMode','append','TransparentColor',BackgroundID);
             end
@@ -274,10 +304,10 @@ Dur = 20;
                 % Set world view
                 [COMx,~] = Sim.Mod.GetPos(X(Sim.ModCo),'COM');
                 [COMy,~] = Sim.Env.Surf(COMx);
-                FlMin = COMx - 0.75*AR*Sim.Mod.L;
-                FlMax = COMx + 0.75*AR*Sim.Mod.L;
+                FlMin = COMx - 1*AR*Sim.Mod.L;
+                FlMax = COMx + 1*AR*Sim.Mod.L;
                 HeightMin = COMy - 0.25/AR*Sim.Mod.L;
-                HeightMax = COMy + 1.25/AR*Sim.Mod.L;
+                HeightMax = COMy + 1.5/AR*Sim.Mod.L;
 
                 TCOMx = makehgtform('translate',...
                     [COMx - COMx0, COMy - COMy0, 0]);

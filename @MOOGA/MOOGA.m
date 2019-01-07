@@ -385,7 +385,6 @@ classdef MOOGA
                 end
                 EndT = T(i+1);
                 if EndX>StartX+3*Sim.Mod.L
-                    %             if Sim.Out.Type == 0 || Sim.Out.Type == 5
                     fit =1+ (EndX-StartX)/(EndT-StartT);
                 else
                     [fit,~] = MOOGA.VelFit(Sim);
