@@ -1,27 +1,27 @@
 % addpath(genpath('Results analysis'));
-% addpath(genpath('results 0921'));
+addpath(genpath('results 1115'));
 %%
 % clear all
 
 %% Running the resulting controller of the GA process through a simulation
 % generate_GenomeFile('6N_tagaLike_2Ank_torques_symm_feedback_eq')
-generate_GenomeFile('ConSpitz_eq')
+generate_GenomeFile('ConSpitz_eq_adaptation')
 
 % first load GA reult .mat
 seqs = GA.Seqs;
 fits = GA.Fit;
 
-GAend = GA.Progress;
+GAend = GA.Progress
 
 %%
-% GAend = 1;
+GAend = 1;
 np = 3;
 start_pulses = 2;
 
 
 %% Taking the top controller for the i-st FF:
 % choose top fitness:
-ff = 1;
+ff = 5;
 
 ind = find(fits(:,ff,GAend)==max(fits(:,ff,GAend)));
 seq = seqs(ind,:,GAend)
@@ -88,9 +88,22 @@ ter_type = 1;
 % sim = tryToWalkMatsuoka(seq,ter_type,1,filename);
 %% Stick figure plot:
 filename = [];
-Dur = 10;
+Dur = 20;
 timestep = 0.01;
 geneNum = GAend;
 GenID = ind;
-CBstick_Figure_plot(GA,geneNum, GenID, Dur, timestep, filename)
+ter_type = 3;
 
+switch ter_type
+    case 1
+        CBstick_Figure_plot(GA,geneNum, GenID, Dur, timestep, filename, ter_type);
+        
+    case 2
+        load('sto_ter_array_0508_11','ppv','dppv')
+        ter = 1;
+        CBstick_Figure_plot(GA,geneNum, GenID, Dur, timestep, filename, ter_type,ppv{ter},dppv{ter});
+        
+    case 3
+        slope = 5;
+        CBstick_Figure_plot(GA,geneNum, GenID, Dur, timestep, filename, ter_type,slope);
+end

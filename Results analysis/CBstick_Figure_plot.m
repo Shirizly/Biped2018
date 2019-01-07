@@ -1,4 +1,4 @@
-function [Sim] = CBstick_Figure_plot(GA,geneNum, GenID, Dur, timestep, filename)
+function [Sim] = CBstick_Figure_plot(GA,geneNum, GenID, Dur, timestep, filename, tertype, varargin)
 %plots the stick figure over timesteps on the same figure
 
 
@@ -50,7 +50,14 @@ Sim.Con = Sim.Con.HandleEvent(1, Sim.IC(Sim.ConCo));
 Sim.Con = Sim.Con.Adaptation();
 
 % Initialize flat terrain
-Sim.Env = Terrain(0,0);
+switch tertype
+    case 1
+        Sim.Env = Terrain(0,0);
+    case 2
+        Sim.Env = Sim.Env.Set('Type',7,'pp',varargin{1},'dpp',varargin{2});
+    case 3
+        Sim.Env = Sim.Env.Set('Type','inc','start_slope',varargin{1});
+end
 
 % Simulate
 Sim = Sim.Run();
@@ -71,7 +78,7 @@ rightLeg = [1,0,0];
 
 for i=1:1:(length(X)-1)
     
-    if i==1 || ~mod(i,20)
+    if i==1 || ~mod(i,50)
         xS = Sim.Out.SuppPos(i,1);
         yS = Sim.Out.SuppPos(i,2);
 
