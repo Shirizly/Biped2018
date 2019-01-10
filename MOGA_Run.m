@@ -139,11 +139,11 @@ GA.FitFcn = {1, @MOOGA.ASVelFit; % new walking velocity function, measured from 
              3, @MOOGA.EigenFit; % Eigenvalues of discrete poincare map
              4, @MOOGA.VelFit; % walking velocity
              5, @MOOGA.StoFit; % stochastic walking fitness
-             6, @MOOGA.UpDownFit}; % min/max slopes
+             6:8, @MOOGA.UpDownFitAll}; % abs(min*max,min,max) slopes
 GA.FitIDs = [1,5,6]; % The fitness functions that are actualy being optimized, out of those calculated 
-GA.FitMinMax = ones(1,6); % sign of optimizing (1 - maximize, -1 - minimized)
+GA.FitMinMax = ones(1,8); % sign of optimizing (1 - maximize, -1 - minimized)
 
-
+%% terrain generation/loading for StoFit
 if exist([GA.TerFileName num2str(runcount) '.mat']) == 2
     load([GA.TerFileName num2str(runcount) '.mat'],'ppv','dppv');
     GA.ppv = ppv;
@@ -157,17 +157,22 @@ if exist([GA.TerFileName num2str(runcount+10) '.mat']) == 2
     GA.ppv = [GA.ppv;ppv];
     GA.dppv = [GA.dppv;dppv];
 else
-    [ppv2,dppv2] = Sto_Ter_Array_Gen(GA.TerFileName,runcount,GA.nTerForSto,GA.TerVarS+2,GA.TerVarE+2,GA.nseg,GA.xend);
+    [ppv2,dppv2] = Sto_Ter_Array_Gen(GA.TerFileName,runcount+10,GA.nTerForSto,GA.TerVarS+2,GA.TerVarE+2,GA.nseg,GA.xend);
     GA.ppv = [GA.ppv;ppv2];
     GA.dppv = [GA.dppv;dppv2];
 end
-
+%%
 GA.NFit = size(GA.FitIDs,2);
 GA.Sim.PMFull = 1; % Run poincare map on all coords
 
 if contains(whichCPG,'adap')
-    GA.Sim.Con.FBType = 1;
-    GA = GA.InitGenAdap();
+    if contains(whichCPG,'4')
+        GA.Sim.Con.FBType = 3;
+    else
+        GA.Sim.Con.FBType = 1;
+    end
+%     GA = GA.InitGenAdap();
+    GA = GA.InitGen();
 else
     GA = GA.InitGen();
 end

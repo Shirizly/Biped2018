@@ -162,8 +162,10 @@ for k = 1:size(Ge.Keys,2)
 % %             MIC(3) = u_ss;
 %             Sim.IC(Sim.ConCo) = MIC;
 
-        case 'k_adap'
+        case 'k_adap4'
             Sim.Con.k_a = [Seq(SeqPos:SeqPos+1);Seq(SeqPos+2:SeqPos+3)];
+            case 'k_adap2'
+            Sim.Con.k_a = Seq(SeqPos:SeqPos+1).';
         case 'dt_nom'
             Sim.Con.dtnom = Seq(SeqPos);
         %% %%%%%%%%%% Model keys %%%%%%%%%% %%

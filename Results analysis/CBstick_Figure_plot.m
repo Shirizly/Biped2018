@@ -1,4 +1,4 @@
-function [Sim] = CBstick_Figure_plot(GA,geneNum, GenID, Dur, timestep, filename, tertype, varargin)
+function [Sim,fig] = CBstick_Figure_plot(GA,geneNum, GenID, Dur, timestep, filename, tertype, varargin)
 %plots the stick figure over timesteps on the same figure
 
 
@@ -53,10 +53,17 @@ Sim.Con = Sim.Con.Adaptation();
 switch tertype
     case 1
         Sim.Env = Terrain(0,0);
+        titletext = 'Walker on flat terrain';
     case 2
         Sim.Env = Sim.Env.Set('Type',7,'pp',varargin{1},'dpp',varargin{2});
+        titletext = ['Walker on stochastic rough terrain -  min/max slopes of '];
     case 3
-        Sim.Env = Sim.Env.Set('Type','inc','start_slope',varargin{1});
+        slope = varargin{1};
+        Sim.Env = Sim.Env.Set('Type','finite','start_slope',0,...
+            'start_x',1,...
+            'start_y',0,...
+            'end_slope',slope,'parK',0.01);
+        titletext = 'Walker on rising slope - up to ';
 end
 
 % Simulate
@@ -67,34 +74,42 @@ X = Sim.Out.X;
 
 
 %Display X
-figure(1);
+fig = figure(1);
+if tertype == (2);
+    s1 = subplot(2,1,1);
+
+end
+pos = get(fig,'Position');
+pos(3:4) = 1.5*pos(3:4);
+pos(2) = pos(2)-300
+set(fig,'Position',pos);
 hold on;
 
 supportPos = diff(Sim.Out.SuppPos(:,1));
+supportChange = find(supportPos~=0);
 alpha = linspace(1,0.2,(length(Sim.Out.X)-1)); %0.2
 leftLeg = [0,0,1];
 rightLeg = [1,0,0];
- 
+textheight = 1;
 
 for i=1:1:(length(X)-1)
-    
-    if i==1 || ~mod(i,50)
+
+    if i==1 || i==(length(X)-5) || ~isempty(find(supportChange==i,1))%%~mod(i,50)
         xS = Sim.Out.SuppPos(i,1);
         yS = Sim.Out.SuppPos(i,2);
 
         [x1,y1] = GetLegsPos(Sim.Mod,X(i,:),xS,yS,'Hip');
         [x2,y2] = GetLegsPos(Sim.Mod,X(i,:),xS,yS,'NS');
-        [x1a,y1a] = GetLegsPos(Sim.Mod,X(i,:),xS,yS,'m1');
-        [x2a,y2a] = GetLegsPos(Sim.Mod,X(i,:),xS,yS,'m2');
+%         [x1a,y1a] = GetLegsPos(Sim.Mod,X(i,:),xS,yS,'m1');
+%         [x2a,y2a] = GetLegsPos(Sim.Mod,X(i,:),xS,yS,'m2');
 
         % Render masses as circles
-        DrawCircle(Sim.Mod, x1a, y1a, 0, Sim.Mod.m_radius, Sim.Mod.m_color,1);
-        DrawCircle(Sim.Mod, x2a, y2a, 0, Sim.Mod.m_radius, Sim.Mod.m_color,2);
+%         DrawCircle(Sim.Mod, x1a, y1a, 0, Sim.Mod.m_radius, Sim.Mod.m_color,1);
+%         DrawCircle(Sim.Mod, x2a, y2a, 0, Sim.Mod.m_radius, Sim.Mod.m_color,2);
         DrawCircle(Sim.Mod, x1, y1, 0, Sim.Mod.mh_radius, Sim.Mod.mh_color,3);
         % Render links
         DrawLink(Sim.Mod, xS, yS, x1, y1, 0);
         DrawLink(Sim.Mod, x1, y1, x2, y2, 0);
-
         if i==1
             axis equal
         end
@@ -102,8 +117,37 @@ for i=1:1:(length(X)-1)
 end
 
 % Draw the floor
-DrawFloor(Sim.Env,Sim.Out.SuppPos(1,1),Sim.Out.SuppPos(end,1));
-
+DrawFloor(Sim.Env,Sim.Out.SuppPos(1,1),Sim.Out.SuppPos(end,1)*1.1);
+switch tertype
+    case 2
+        slopes = Sim.Env.SurfSlope(Sim.Out.SuppPos(supportChange,1));
+        maxslope = round(rad2deg(max(slopes)),2);
+        minslope = round(rad2deg(min(slopes)),2);
+        titletext = [titletext num2str(minslope) char(176) ',' num2str(maxslope) char(176)];
+    case 3
+        maxslope = round(rad2deg(Sim.Env.SurfSlope(Sim.Out.SuppPos(end,1))),2);
+        titletext = [titletext num2str(maxslope) char(176)];
+end
+t1 = title(titletext);
+set(t1,'FontName','Garamound', 'fontsize',24)
+ylabel('Height [m]')
+if tertype==2
+    s2 = subplot(2,1,2);
+    
+    hold on
+    plot(0:0.01:Sim.Out.SuppPos(end,1),rad2deg(Sim.Env.SurfSlope(0:0.01:Sim.Out.SuppPos(end,1))),'lineWidth',2);
+    plot(Sim.Out.SuppPos(supportChange,1),rad2deg(Sim.Env.SurfSlope(Sim.Out.SuppPos(supportChange,1))),'+','lineWidth',1);
+    %     text(xS,yS-0.5-0.3*mod(textheight,5),num2str(rad2deg(Sim.Env.SurfSlope(xS))));
+    plot([0 Sim.Out.SuppPos(end,1)]*1.1,[0 0],'k--','lineWidth',1)
+    xlabel('Distance [m]')
+    ylabel(['Slope [' char(176) ']'])
+    t2 = title('Slope of the terrain');
+    
+    set(t2,'FontName','Garamound', 'fontsize',20)
+    set(s2,'XLim',get(s1,'XLim'));
+    grid on
+    hold off
+end
 end
 
 % %%%%%%%% Auxiliary nested functions %%%%%%%% %
@@ -173,7 +217,8 @@ function DrawLink(CB, x0, y0, x1, y1, z)
 
     res.Geom=patch(coordX,coordY,coordZ,CB.leg_color);
     set(res.Geom,'EdgeColor',[0 0 0]);
-    set(res.Geom,'LineWidth',2*CB.LineWidth);
+    set(res.Geom,'FaceColor',[0 0 0]);
+    set(res.Geom,'LineWidth',1*CB.LineWidth);
 
     set(res.Geom,'Parent',res.Trans);
     set(res.Trans,'Matrix',Txy*Rz*Sx);

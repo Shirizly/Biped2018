@@ -534,7 +534,6 @@ classdef MOOGA
                         sim.Mod.xS = 0;
                         sim.Mod.yS = 0;
                         sim.IC(sim.ModCo) = zeros(1,length(sim.ModCo));
-                        sim.Con.FBType = 0;
                         sim.Mod.LegShift = sim.Mod.Clearance;
                         sim = sim.SetTime(0,0.1,GA.xend*3);
 
@@ -724,6 +723,9 @@ classdef MOOGA
                 if SlSim.Out.Type == 6
                    % Simulation GO
                    Slope = Slope+dSlope;
+                   if abs(Slope)>=10
+                       break;
+                   end
                 else
                     % Slope = max(abs(SlSim.Out.Slopes))*58;
                     % Add the percentage of total time it managed to walk
@@ -785,6 +787,29 @@ classdef MOOGA
             UDSim = deepcopy(Sim);
             UDSim.Out = up_out;
             out = UDSim.JoinOuts(down_out);
+        end
+        
+        function [fit,out] = UpDownFitAll(Sim)
+            % Combines the upslope and downslope fitness results
+            
+            if isempty(Sim.Period)
+                % Weed out results that didn't converge
+                fit = [0 0 0];
+                out = [];
+                return;
+            end
+%               tic  
+            % Run the upslope test
+            [up_fit,up_out] = MOOGA.SlopeFit(Sim,1);
+            % Run the downslope test
+            [down_fit,down_out] = MOOGA.SlopeFit(Sim,-1);
+%             tex = toc;
+%             disp(['Slope fitness = ' num2str(tex)]);
+            fit = [up_fit*down_fit up_fit down_fit];
+            
+
+            Sim.Out = up_out;
+            out = Sim.JoinOuts(down_out);
         end
         
         function [max_vel, COT, max_s, out] = DeltaVelFit(Sim, dir, base_vel)
