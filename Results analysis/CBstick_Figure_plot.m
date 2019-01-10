@@ -47,7 +47,7 @@ Sim = Sim.Init();
 % Some more simulation initialization
 Sim.Mod.LegShift = Sim.Mod.Clearance;
 Sim.Con = Sim.Con.HandleEvent(1, Sim.IC(Sim.ConCo));
-Sim.Con = Sim.Con.Adaptation();
+Sim.Con = Sim.Con.Adaptation(Sim.IC);
 
 % Initialize flat terrain
 switch tertype
@@ -56,7 +56,7 @@ switch tertype
         titletext = 'Walker on flat terrain';
     case 2
         Sim.Env = Sim.Env.Set('Type',7,'pp',varargin{1},'dpp',varargin{2});
-        titletext = ['Walker on stochastic rough terrain -  min/max slopes of '];
+        titletext = ['Walker on stochastic rough terrain - up to '];
     case 3
         slope = varargin{1};
         Sim.Env = Sim.Env.Set('Type','finite','start_slope',0,...
@@ -142,7 +142,7 @@ if tertype==2
     xlabel('Distance [m]')
     ylabel(['Slope [' char(176) ']'])
     t2 = title('Slope of the terrain');
-    
+    legend('Slope','Footpath','location','best')
     set(t2,'FontName','Garamound', 'fontsize',20)
     set(s2,'XLim',get(s1,'XLim'));
     grid on

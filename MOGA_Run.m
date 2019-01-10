@@ -20,7 +20,7 @@ GA.JOAT = 2; % jack of all trades, methods to prevent overspecializations for sp
 GA.Quant = 0.7; % parameter for GA.JOAT = 2, defines percentiles for JOAT method 2
 
 
-% Load Genome File:
+%% Load Genome File:
 load('MatsuokaGenome.mat','Keys','Range','N',...
     'nAnkle1','nAnkle2','nHip','maxAnkle', 'maxHip',...
     'MutDelta0','MutDelta1');

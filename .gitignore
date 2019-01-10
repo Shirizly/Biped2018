@@ -3,6 +3,8 @@ results 0912/
 results 1024/
 results for later/
 results 0816/
+results 1115/
+results 0110/
 Old results/
 Graphs/
 *.bmp
@@ -10,8 +12,4 @@ Graphs/
 *.asv
 *.mat
 *.gif
-<<<<<<< HEAD
-=======
-
->>>>>>> master
 MatsuokaGenome.mat

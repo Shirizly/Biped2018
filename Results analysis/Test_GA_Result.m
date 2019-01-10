@@ -1,11 +1,13 @@
 % addpath(genpath('Results analysis'));
-addpath(genpath('results 1115'));
+addpath(genpath('MOGA_runs_scripts_and_functions'),genpath('Aux functions in use'),genpath('Stochastic terrains'),genpath('Results analysis'),...
+    genpath('results 0921'));
+addpath(genpath('results 1115'),genpath('results 0110'));
 %%
 % clear all
 
 %% Running the resulting controller of the GA process through a simulation
 % generate_GenomeFile('6N_tagaLike_2Ank_torques_symm_feedback_eq')
-generate_GenomeFile('ConSpitz_eq')
+generate_GenomeFile('ConSpitz_eq_adaptation')
 
 % first load GA reult .mat
 seqs = GA.Seqs;
@@ -23,7 +25,7 @@ start_pulses = 2;
 
 %% Taking the top controller for the i-st FF:
 % choose top fitness:
-ff = 6;
+ff = 5;
 
 ind = find(fits(:,ff,GAend)==max(fits(:,ff,GAend)));
 seq = seqs(ind,:,GAend)
@@ -102,14 +104,14 @@ switch ter_type
         [~,fig] = CBstick_Figure_plot(GA,geneNum, GenID, Dur, timestep, filename, ter_type);
         
     case 2
-        arraynum = 11;
+        arraynum = 14;
         load(['sto_ter_array_0508_' num2str(arraynum)],'ppv','dppv')
-        ter = 2;
+        ter = 1;
         tername = ['Rough_array' num2str(arraynum) '_ter' num2str(ter)];
         [~,fig] = CBstick_Figure_plot(GA,geneNum, GenID, Dur, timestep, filename, ter_type,ppv{ter},dppv{ter});
         
     case 3
-        slope = 5;
+        slope = 10;
         tername = ['Rising_slope' num2str(slope)];
         [~,fig] = CBstick_Figure_plot(GA,geneNum, GenID, Dur, timestep, filename, ter_type,slope);
 end

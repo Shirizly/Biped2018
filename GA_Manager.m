@@ -1,16 +1,15 @@
 addpath(genpath('MOGA_runs_scripts_and_functions'),genpath('Aux functions in use'),genpath('Stochastic terrains'),genpath('Results analysis'),...
     genpath('results 0921'));
-%
-<<<<<<< HEAD
+
 clear all
-=======
+
 % clear all
->>>>>>> master
+
 % clc
 
 %%
 if exist('GA','var')
-    %%
+
     GA = GA.Run();
     GA.Plot('Fit');
 end
@@ -30,13 +29,10 @@ adaptation = 1;
 nRuns = 10;
 
 % Evulotionary parameters:
-<<<<<<< HEAD
-MoogaGen = 10;
-MoogaPop = 1000;
-=======
+
 MoogaGen = 60;
 MoogaPop = 2500;
->>>>>>> master
+
 
 % Stochastic terrain parameters:
 % setup for StoFit:
@@ -52,68 +48,49 @@ TerFileName = 'sto_ter_array_0508_';
 trainingDataFile = 'MatsRandomRes_6N_general_TrainingSet.mat'; % training data file name, for rea's reseacrch, hybrid GA/NN
 whichGA_Case = '_GA_only_Feedback';
 
-
 nStruct = length(CPGlist);
 for i=1:nStruct
     whichCPGv{i} = whichCPGp{CPGlist(i)};
 end
 
-<<<<<<< HEAD
-FileName_date = ['11_29_'];
-=======
 FileName_date = ['01_04_'];
->>>>>>> master
-
-failure = [];
-
-
+failure = []; % error log
 
 for j = 1:nStruct
     whichCPG = whichCPGv{j}
     switch adaptation
         case 1
-        whichCPG = [whichCPG '_adaptation'];
-<<<<<<< HEAD
-=======
-        %         FileIn = [whichCPGv{j} '_09_21_' num2str(i) '.mat'];
-
+            whichCPG = [whichCPG '_adaptation'];
+            
+            %         FileIn = [whichCPGv{j} '_09_21_' num2str(i) '.mat'];
+            
         case 2
             whichCPG = [whichCPG '_adaptation4'];
->>>>>>> master
+            
     end
     FileIn = [];
     generate_GenomeFile(whichCPG); % this functions holds definitions for the genetic sequenceFileName_prefix = 'AS_';
     FileName_start = [whichCPG,'_'];
     try
-<<<<<<< HEAD
         for i = 2:nRuns
-            if adaptation == 1
-                FileIn = [whichCPGv{j} '_11_15_' num2str(i) '.mat'];
-            else
-                FileIn = [];
-            end
-=======
-        for i = 5:nRuns
->>>>>>> master
             %     for i=1:nRuns  % running every method several times for stastistical analysis
             GA = MOOGA(MoogaGen,MoogaPop); % (generations,population size)
             FileName_extra1 = [num2str(i)];
             FileName_extra2 = [];
             GA.FileOut = [FileName_start,FileName_date,...
                 FileName_extra1,FileName_extra2,'.mat'];
-<<<<<<< HEAD
-=======
-            if exist(GA.FileOut,'file')
+            
+            while exist(GA.FileOut,'file')
                 if isempty(FileName_extra2)
                     FileName_extra2 =  1;
                 else
                     FileName_extra2 = FileName_extra2+1;
                 end
                 FileName_extra2 = ['_' num2str(FileName_extra2)];
-            end
-            GA.FileOut = [FileName_start,FileName_date,...
+                GA.FileOut = [FileName_start,FileName_date,...
                 FileName_extra1,FileName_extra2,'.mat'];
->>>>>>> master
+            end
+            
             GA.FileIn = FileIn;
             
             % Stochastic terrain setup
